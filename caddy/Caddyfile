@@ -1,0 +1,38 @@
+:8080
+root * /app/index
+file_server browse
+
+header {
+    X-Robots-Tag none
+    X-Content-Type-Options nosniff
+    X-Frame-Options DENY
+    Referrer-Policy no-referrer-when-downgrade
+}
+
+@websocket_xray_vmess {
+header Connection *Upgrade*
+header Upgrade    websocket
+path /vmess
+}
+reverse_proxy @websocket_xray_vmess unix//app/sockets/vmess
+
+@websocket_xray_vless {
+header Connection *Upgrade*
+header Upgrade    websocket
+path /vless
+}
+reverse_proxy @websocket_xray_vless unix//app/sockets/vless
+
+@websocket_xray_trojan {
+header Connection *Upgrade*
+header Upgrade    websocket
+path /trojan
+}
+reverse_proxy @websocket_xray_trojan unix//app/sockets/trojan
+
+@websocket_xray_socks {
+header Connection *Upgrade*
+header Upgrade    websocket
+path /socks
+}
+reverse_proxy @websocket_xray_socks 127.0.0.1:5234

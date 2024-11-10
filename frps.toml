@@ -1,0 +1,18 @@
+# Control plane binding
+bindAddr = "0.0.0.0"
+bindPort = 7000
+kcpBindPort = 7000
+quicBindPort = 7001
+
+# Data plane binding
+proxyBindAddr = "0.0.0.0"
+
+# frp dashboard
+webServer.addr = "::"
+webServer.port = 8443
+webServer.user = "admin"
+webServer.password = "{{ .Envs.FRP_DASHBOARD_PWD }}"
+
+# frp authentication
+auth.method = "token"
+auth.token = "{{ .Envs.FRP_TOKEN }}"

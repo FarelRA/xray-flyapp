@@ -1,0 +1,117 @@
+# fly.toml app configuration file generated for farel on 2024-11-10T20:09:15+07:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'farel'
+primary_region = 'sin'
+kill_signal = 'SIGTERM'
+kill_timeout = '2m0s'
+
+[build]
+  dockerfile = 'Dockerfile'
+  build-target = 'main'
+
+[env]
+  ParameterSSENCYPT = 'chacha20-ietf-poly1305'
+
+[http_service]
+  internal_port = 8080
+
+  [http_service.concurrency]
+    type = 'connections'
+    hard_limit = 1024
+    soft_limit = 768
+
+    [http_service.http_options.response]
+      pristine = true
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 8443
+
+  [[services.ports]]
+    port = 8443
+    handlers = ['tls', 'http']
+
+  [services.concurrency]
+    type = 'connections'
+    hard_limit = 1024
+    soft_limit = 768
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 7000
+
+  [[services.ports]]
+    port = 7000
+
+  [services.concurrency]
+    type = 'connections'
+    hard_limit = 1024
+    soft_limit = 768
+
+[[services]]
+  protocol = 'udp'
+  internal_port = 7000
+
+  [[services.ports]]
+    port = 7000
+
+  [services.concurrency]
+    type = 'connections'
+    hard_limit = 1024
+    soft_limit = 768
+
+[[services]]
+  protocol = 'udp'
+  internal_port = 7001
+
+  [[services.ports]]
+    port = 7001
+
+  [services.concurrency]
+    type = 'connections'
+    hard_limit = 1024
+    soft_limit = 768
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 8022
+
+  [[services.ports]]
+    port = 22
+
+  [services.concurrency]
+    type = 'connections'
+    hard_limit = 1024
+    soft_limit = 768
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 25565
+
+  [[services.ports]]
+    port = 25565
+
+  [services.concurrency]
+    type = 'connections'
+    hard_limit = 1024
+    soft_limit = 768
+
+[[services]]
+  protocol = 'udp'
+  internal_port = 19132
+
+  [[services.ports]]
+    port = 19132
+
+  [services.concurrency]
+    type = 'connections'
+    hard_limit = 1024
+    soft_limit = 768
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256

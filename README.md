@@ -18,53 +18,60 @@ This project combines Xray and FRP, allowing you to run your own secure tunnels 
 
 ### Normal frp
 ```mermaid
-flowchart RL
-  User <--> |Data Plane| frps
-  frps <--> |Control Plane| frpc
-  subgraph flyapp [fly.io App Server]
-    frps
-  end
-  subgraph ServerNoPublicIP [Server without Public IP]
-    frpc <--> Service[TCP, UDP, or HTTP service]
-  end
+flowchart LR
+	subgraph ServerNoPublicIP["Server without Public IP"]
+		Services["TCP, UDP, or HTTP services"]
+		frpc["frpc"]
+	end
+	subgraph flyapp["fly.io App Server"]
+		frps["frps"]
+	end
+	Internet["The Internet"]
+
+    Services <---> frpc
+    frpc <--> |Control Plane| frps
+    frps <--> |Data Plane| Internet
 ```
 
 ### Normal Xray
 ```mermaid
-flowchart RL
-  Internet <--> Xray-Server
-  Xray-Server <--> Xray-Client
-  subgraph flyapp [fly.io App Server]
-    Xray-Server
-  end
-  subgraph ServerNoPublicIP [Client behind Firewall]
-    Xray-Client <--> Request[Local Request]
-  end
+flowchart LR
+	subgraph ServerBehindFirewall["User behind Firewall"]
+		Requests["User requests"]
+		XrayClient["Xray client"]
+	end
+	subgraph flyapp["fly.io App Server"]
+		XrayServer["Xray server"]
+	end
+	Internet["The Internet"]
+
+    Requests <---> XrayClient
+    XrayClient <--> |Masked & Encryped| XrayServer
+    XrayServer <--> Internet
 ```
 
-### Combine Xray frp
+### Combine Xray & frp
 ```mermaid
-flowchart RL
-  Internet <--> |Data Plane| frps
-  frps <--> |Control Plane| Xray-Server
-  Xray-Client <--> |Control Plane| frpc
-  subgraph flyapp [fly.io App Server]
-    frps
-  end
-  subgraph ServerNoPublicIP [Private Network/Behind Firewall]
-    frpc <--> Service[TCP, UDP, or HTTP service]
-  end
+flowchart LR
+	subgraph ServerBehindFirewall["Private Network/Behind Firewall"]
+		Requests["User requests"]
+		XrayClient["Xray client"]
+		Services["TCP, UDP, or HTTP services"]
+		frpc["frpc"]
+	end
+	subgraph flyapp["fly.io App Server"]
+		XrayServer["Xray server"]
+        frps["frps"]
+	end
+	Internet["The Internet"]
 
-
-  Internet <--> Xray-Server
-  Xray-Server <--> Xray-Client
-  subgraph flyapp [fly.io App Server]
-    Xray-Server
-  end
-  subgraph ServerNoPublicIP [Private Network/Behind Firewall]
-    Xray-Client <--> Request[Local Request]
-  end
-
+    Requests <---> XrayClient
+    Services <--> frpc
+    frpc <--> |Control Plane| XrayClient
+    XrayClient <--> |Masked & Encryped| XrayServer
+    XrayServer <--> Internet
+    XrayServer <--> |Control Plane| frps
+    frps <--> |Data Plane| Internet
 ```
 ## Deployment
 

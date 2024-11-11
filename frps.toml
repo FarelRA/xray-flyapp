@@ -1,8 +1,8 @@
 # Control plane binding
 bindAddr = "0.0.0.0"
 bindPort = 7000
-kcpBindPort = 7000
-quicBindPort = 7001
+kcpBindPort = 7001
+quicBindPort = 7002
 
 # Data plane binding
 proxyBindAddr = "0.0.0.0"

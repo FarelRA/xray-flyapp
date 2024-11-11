@@ -135,7 +135,7 @@ serverAddr = "<your-app-name>.fly.dev"
 auth.token = "<your-token>"
 
 # For KCP: (Default)
-serverPort = 7000
+serverPort = 7001
 transport.protocol = "kcp"
 
 # For TCP:
@@ -143,7 +143,7 @@ transport.protocol = "kcp"
 # transport.protocol = "tcp"
 
 # For QUIC:
-# serverPort = 7001
+# serverPort = 7002
 # transport.protocol = "quic"
 
 [[proxies]]

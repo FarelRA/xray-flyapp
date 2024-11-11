@@ -2,6 +2,7 @@
 
 appName="$FLY_APP_NAME"
 appIP="$(dig +short $appName.fly.dev 127.0.0.1)"
+udpBindAddr="$(grep 'fly-global-services' /etc/hosts | awk '{print $1}')"
 
 # Subtitute variable in xray config
 cat /app/config/xray.json.var | \
@@ -9,10 +10,11 @@ cat /app/config/xray.json.var | \
         -e "s/\$ParameterSSENCYPT/${ParameterSSENCYPT}/g" \
         -e "s/\$appName/${appName}/g" \
         -e "s/\$appIP/${appIP}/g" \
+        -e "s/\$udpBindAddr/${udpBindAddr}/g" \
     > /app/config/xray.json
 
 # Start Tor
-tor &
+tor -f /app/config/torrc &
 
 # Start Xray
 /app/xray/xray -config /app/config/xray.json &

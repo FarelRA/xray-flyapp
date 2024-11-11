@@ -21,6 +21,9 @@ COPY xray/xray.json config/xray.json.var
 # Configure Caddy
 COPY caddy/Caddyfile config/
 
+# Configure torrc
+COPY tor/torrc config/
+
 # Copy mikutap to Caddy index page
 COPY caddy/mikutap/* index/
 

@@ -73,26 +73,26 @@ kill_timeout = '2m0s'
     hard_limit = 1024
     soft_limit = 768
 
-# UDP (KCP) connection service on 7000
-[[services]]
-  protocol = 'udp'
-  internal_port = 7000
-
-  [[services.ports]]
-    port = 7000
-
-  [services.concurrency]
-    type = 'connections'
-    hard_limit = 1024
-    soft_limit = 768
-
-# UDP (Quic) connection service on 7001
+# UDP (KCP) connection service on 7001
 [[services]]
   protocol = 'udp'
   internal_port = 7001
 
   [[services.ports]]
     port = 7001
+
+  [services.concurrency]
+    type = 'connections'
+    hard_limit = 1024
+    soft_limit = 768
+
+# UDP (Quic) connection service on 7002
+[[services]]
+  protocol = 'udp'
+  internal_port = 7002
+
+  [[services.ports]]
+    port = 7002
 
   [services.concurrency]
     type = 'connections'

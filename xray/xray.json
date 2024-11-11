@@ -6,18 +6,39 @@
             "streamSettings": {"network": "ws","wsSettings": {"path": "/vmess"}}
         },
         {
+            "listen": "/app/sockets/vmess.grpc","protocol": "vmess",
+            "settings": {"clients": [{"id": "$UUID"}]},
+            "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "vmess"}}
+        },
+        {
             "listen": "/app/sockets/vless","protocol": "vless",
             "settings": {"clients": [{"id": "$UUID"}],"decryption": "none"},
             "streamSettings": {"network": "ws","wsSettings": {"path": "/vless"}}
+        },
+        {
+            "listen": "/app/sockets/vless.grpc","protocol": "vless",
+            "settings": {"clients": [{"id": "$UUID"}],"decryption": "none"},
+            "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "vless"}}
         },
         {
             "listen": "/app/sockets/trojan","protocol": "trojan",
             "settings": {"clients": [{"password":"$UUID"}]},
             "streamSettings": {"network": "ws","wsSettings": {"path": "/trojan"}}
         },
-        {   "port": 5234,"listen": "127.0.0.1","protocol": "socks",
+        {
+            "listen": "/app/sockets/trojan.grpc","protocol": "trojan",
+            "settings": {"clients": [{"password":"$UUID"}]},
+            "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "trojan"}}
+        },
+        {
+           "listen": "/app/sockets/socks","protocol": "socks",
             "settings": {"auth": "password","accounts": [{"user": "socks","pass": "$UUID"}]},
             "streamSettings": {"network": "ws","wsSettings": {"path": "/socks"}}
+        },
+        {
+           "listen": "/app/sockets/socks.grpc","protocol": "socks",
+            "settings": {"auth": "password","accounts": [{"user": "socks","pass": "$UUID"}]},
+            "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "socks"}}
         }
     ],
     

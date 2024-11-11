@@ -34,7 +34,7 @@
             {"type": "field","domain": ["geosite:tor"],"outboundTag": "sockstor"},
 
             {"type": "field","domain": ["full:$appName.fly.dev"],"port": "7000,7001","outboundTag": "local"},
-            {"type": "field","ip": ["$appIP/32"],"port": "7000,7001","outboundTag": "local"},
+            {"type": "field","ip": ["$appIP"],"port": "7000,7001","outboundTag": "local"},
 
             {"type": "field","port": "0-65535","outboundTag": "direct"}
         ]

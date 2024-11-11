@@ -1,10 +1,23 @@
-# fly.toml app configuration file generated for farel on 2024-11-10T20:09:15+07:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
+################################
+# App configuration
+# Name, Region, Env, and Machine
 
 app = 'farel'
 primary_region = 'sin'
+
+[env]
+  ParameterSSENCYPT = 'chacha20-ietf-poly1305'
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
+
+
+################################
+# Build and App configuration
+# DO NOT CHANGE unless you know
+
 kill_signal = 'SIGTERM'
 kill_timeout = '2m0s'
 
@@ -12,8 +25,10 @@ kill_timeout = '2m0s'
   dockerfile = 'Dockerfile'
   build-target = 'main'
 
-[env]
-  ParameterSSENCYPT = 'chacha20-ietf-poly1305'
+
+################################
+# HTTP Service (Port 80 and 443)
+# Currently used by Caddy for Xray
 
 [http_service]
   internal_port = 8080
@@ -26,6 +41,12 @@ kill_timeout = '2m0s'
     [http_service.http_options.response]
       pristine = true
 
+
+################################
+# frps configuration
+# Web pannel and services port
+
+# Web pannel on 8443
 [[services]]
   protocol = 'tcp'
   internal_port = 8443
@@ -39,6 +60,7 @@ kill_timeout = '2m0s'
     hard_limit = 1024
     soft_limit = 768
 
+# TCP connection service on 7000
 [[services]]
   protocol = 'tcp'
   internal_port = 7000
@@ -51,6 +73,7 @@ kill_timeout = '2m0s'
     hard_limit = 1024
     soft_limit = 768
 
+# UDP (KCP) connection service on 7000
 [[services]]
   protocol = 'udp'
   internal_port = 7000
@@ -63,6 +86,7 @@ kill_timeout = '2m0s'
     hard_limit = 1024
     soft_limit = 768
 
+# UDP (Quic) connection service on 7001
 [[services]]
   protocol = 'udp'
   internal_port = 7001
@@ -75,6 +99,39 @@ kill_timeout = '2m0s'
     hard_limit = 1024
     soft_limit = 768
 
+
+################################
+# frps port forward configuration
+# port open by frps for reverse proxy
+
+# Experimental port uses (TCP)
+[[services]]
+  protocol = 'tcp'
+  internal_port = 3072
+
+  [[services.ports]]
+    port = 3072
+
+  [services.concurrency]
+    type = 'connections'
+    hard_limit = 1024
+    soft_limit = 768
+
+# Experimental port uses (UDP)
+[[services]]
+  protocol = 'udp'
+  internal_port = 3072
+
+  [[services.ports]]
+    port = 3072
+
+  [services.concurrency]
+    type = 'connections'
+    hard_limit = 1024
+    soft_limit = 768
+
+# SSH service (TCP)
+# Forwarded to 8022 then open to port 22 by fly
 [[services]]
   protocol = 'tcp'
   internal_port = 8022
@@ -87,6 +144,7 @@ kill_timeout = '2m0s'
     hard_limit = 1024
     soft_limit = 768
 
+# Minecraft Java (TCP)
 [[services]]
   protocol = 'tcp'
   internal_port = 25565
@@ -99,6 +157,7 @@ kill_timeout = '2m0s'
     hard_limit = 1024
     soft_limit = 768
 
+# Minecraft Java (UDP)
 [[services]]
   protocol = 'udp'
   internal_port = 19132
@@ -111,7 +170,19 @@ kill_timeout = '2m0s'
     hard_limit = 1024
     soft_limit = 768
 
-[[vm]]
-  cpu_kind = "shared"
-  cpus = 1
-  memory_mb = 256
+
+################################
+# Expose tor socks5 proxy
+# Because we have it, so why not
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 9050
+
+  [[services.ports]]
+    port = 9050
+
+  [services.concurrency]
+    type = 'connections'
+    hard_limit = 1024
+    soft_limit = 768

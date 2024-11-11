@@ -107,7 +107,7 @@ flowchart LR
 * **TLS:** Enabled (for port 443)
 * **SNI:** `<your-app-name>.fly.dev`
 * **Allow Insecure:** true
-* **Flow:** (Optional)
+* **Flow:** `<empty>`
 * **Encryption:** none
 * **Security:** auto
 
@@ -134,7 +134,8 @@ Modify `frps.toml` and/or `fly.toml` and redeploy: `fly deploy -a <your-app-name
 serverAddr = "<your-app-name>.fly.dev"
 auth.token = "<your-token>"
 
-serverPort = 7000 # Default: KCP
+# For KCP: (Default)
+serverPort = 7000
 transport.protocol = "kcp"
 
 # For TCP:
@@ -145,6 +146,12 @@ transport.protocol = "kcp"
 # serverPort = 7001
 # transport.protocol = "quic"
 
+[[proxies]]
+name = "SSH"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 22
+remotePort = 8022
 
 [[proxies]]
 name = "Minecraft Java"
@@ -159,6 +166,20 @@ type = "udp"
 localIP = "127.0.0.1"
 localPort = 19132
 remotePort = 19132
+
+[[proxies]]
+name = "Experimental Test (TCP)"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 3072
+remotePort = 3072
+
+[[proxies]]
+name = "Experimental Test (UDP)"
+type = "udp"
+localIP = "127.0.0.1"
+localPort = 3072
+remotePort = 3072
 ```
 
 

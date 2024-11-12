@@ -3,76 +3,60 @@ root * /app/index
 file_server browse
 
 header {
-    X-Robots-Tag none
-    X-Content-Type-Options nosniff
-    X-Frame-Options DENY
-    Referrer-Policy no-referrer-when-downgrade
+	X-Robots-Tag none
+	X-Content-Type-Options nosniff
+	X-Frame-Options DENY
+	Referrer-Policy no-referrer-when-downgrade
 }
 
 @websocket_xray_vmess {
-    header Connection *Upgrade*
-    header Upgrade    websocket
-    path /vmess
+	header Connection *Upgrade*
+	header Upgrade websocket
+	path /vmess
 }
 reverse_proxy @websocket_xray_vmess unix//app/sockets/vmess
 
 @grpc_xray_vmess {
-    protocol grpc
-    path /vmess/*
+	protocol grpc
+	path /vmess/*
 }
-reverse_proxy @grpc_xray_vmess unix//app/sockets/vmess.grpc {
-    transport http {
-        versions h2c
-    }
-}
+reverse_proxy @grpc_xray_vmess h2c://127.0.0.1:5241
 
 @websocket_xray_vless {
-    header Connection *Upgrade*
-    header Upgrade    websocket
-    path /vless
+	header Connection *Upgrade*
+	header Upgrade websocket
+	path /vless
 }
 reverse_proxy @websocket_xray_vless unix//app/sockets/vless
 
 @grpc_xray_vless {
-    protocol grpc
-    path /vless/*
+	protocol grpc
+	path /vless/*
 }
-reverse_proxy @grpc_xray_vless unix//app/sockets/vless.grpc {
-    transport http {
-        versions h2c
-    }
-}
+reverse_proxy @grpc_xray_vless h2c://127.0.0.1:5242
 
 @websocket_xray_trojan {
-    header Connection *Upgrade*
-    header Upgrade    websocket
-    path /trojan
+	header Connection *Upgrade*
+	header Upgrade websocket
+	path /trojan
 }
 reverse_proxy @websocket_xray_trojan unix//app/sockets/trojan
 
 @grpc_xray_trojan {
-    protocol grpc
-    path /trojan/*
+	protocol grpc
+	path /trojan/*
 }
-reverse_proxy @grpc_xray_trojan unix//app/sockets/trojan.grpc {
-    transport http {
-        versions h2c
-    }
-}
+reverse_proxy @grpc_xray_trojan h2c://127.0.0.1:5243
 
 @websocket_xray_socks {
-    header Connection *Upgrade*
-    header Upgrade    websocket
-    path /socks
+	header Connection *Upgrade*
+	header Upgrade websocket
+	path /socks
 }
 reverse_proxy @websocket_xray_socks unix//app/sockets/socks
 
 @grpc_xray_socks {
-    protocol grpc
-    path /socks/*
+	protocol grpc
+	path /socks/*
 }
-reverse_proxy @grpc_xray_socks unix//app/sockets/socks.grpc {
-    transport http {
-        versions h2c
-    }
-}
+reverse_proxy @grpc_xray_socks h2c://127.0.0.1:5244

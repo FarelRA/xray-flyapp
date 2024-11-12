@@ -27,20 +27,36 @@ kill_timeout = '2m0s'
 
 
 ################################
-# HTTP Service (Port 80 and 443)
-# Currently used by Caddy for Xray
+# Caddy service (Port 80 and 443)
+# Currently used for Xray routing
 
-[http_service]
+# Caddy TLS service
+[[services]]
+  protocol = 'tcp'
   internal_port = 8080
 
-  [http_service.concurrency]
+  [[services.ports]]
+    port = 443
+    handlers = ['tls']
+
+  [services.concurrency]
     type = 'connections'
     hard_limit = 1024
     soft_limit = 768
 
-    [http_service.http_options.response]
-      pristine = true
+# Caddy non-TLS service
+[[services]]
+  protocol = 'tcp'
+  internal_port = 8080
 
+  [[services.ports]]
+    port = 80
+
+  [services.concurrency]
+    type = 'connections'
+    hard_limit = 1024
+    soft_limit = 768
+    
 
 ################################
 # frps configuration

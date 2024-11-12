@@ -27,10 +27,10 @@ kill_timeout = '2m0s'
 
 
 ################################
-# Caddy service (Port 80 and 443)
+# Nginx service (Port 80 and 443)
 # Currently used for Xray routing
 
-# Caddy TLS service
+# Nginx TLS service
 [[services]]
   protocol = 'tcp'
   internal_port = 8080
@@ -44,7 +44,7 @@ kill_timeout = '2m0s'
     hard_limit = 1024
     soft_limit = 768
 
-# Caddy non-TLS service
+# Nginx non-TLS service
 [[services]]
   protocol = 'tcp'
   internal_port = 8080
@@ -196,7 +196,7 @@ kill_timeout = '2m0s'
   internal_port = 9050
 
   [[services.ports]]
-    port = 9050
+    port = 2160
 
   [services.concurrency]
     type = 'connections'

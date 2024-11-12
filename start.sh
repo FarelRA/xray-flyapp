@@ -19,8 +19,8 @@ tor -f /app/config/torrc &
 # Start Xray
 /app/xray/xray -config /app/config/xray.json &
 
-# Start Caddy
-caddy run --config /app/config/Caddyfile --adapter caddyfile &
+# Start Nginx
+nginx -c /app/config/nginx.conf &
 
 # Start frp server
 /app/frps -c /app/config/frps.toml &

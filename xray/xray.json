@@ -6,9 +6,9 @@
             "streamSettings": {"network": "ws","wsSettings": {"path": "/vmess"}}
         },
         {
-            "listen": "127.0.0.1","port": 5241,"protocol": "vmess",
+            "listen": "/app/sockets/vmess.grpc","protocol": "vmess",
             "settings": {"clients": [{"id": "$UUID"}]},
-            "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "vmess"}}
+            "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "vmess-grpc"}}
         },
         {
             "listen": "/app/sockets/vless","protocol": "vless",
@@ -16,9 +16,9 @@
             "streamSettings": {"network": "ws","wsSettings": {"path": "/vless"}}
         },
         {
-            "listen": "127.0.0.1","port": 5242,"protocol": "vless",
+            "listen": "/app/sockets/vless.grpc","protocol": "vless",
             "settings": {"clients": [{"id": "$UUID"}],"decryption": "none"},
-            "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "vless"}}
+            "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "vless-grpc"}}
         },
         {
             "listen": "/app/sockets/trojan","protocol": "trojan",
@@ -26,9 +26,9 @@
             "streamSettings": {"network": "ws","wsSettings": {"path": "/trojan"}}
         },
         {
-            "listen": "127.0.0.1","port": 5243,"protocol": "trojan",
+            "listen": "/app/sockets/trojan.grpc","protocol": "trojan",
             "settings": {"clients": [{"password":"$UUID"}]},
-            "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "trojan"}}
+            "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "trojan-grpc"}}
         },
         {
             "listen": "/app/sockets/socks","protocol": "socks",
@@ -36,9 +36,9 @@
             "streamSettings": {"network": "ws","wsSettings": {"path": "/socks"}}
         },
         {
-            "listen": "127.0.0.1","port": 5244,"protocol": "socks",
+            "listen": "/app/sockets/socks.grpc","protocol": "socks",
             "settings": {"auth": "password","accounts": [{"user": "socks","pass": "$UUID"}]},
-            "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "socks"}}
+            "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "socks-grpc"}}
         }
     ],
     

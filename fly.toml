@@ -123,10 +123,10 @@ kill_timeout = '2m0s'
 # Experimental port uses (TCP)
 [[services]]
   protocol = 'tcp'
-  internal_port = 3072
+  internal_port = 1536
 
   [[services.ports]]
-    port = 3072
+    port = 1536
 
   [services.concurrency]
     type = 'connections'
@@ -136,10 +136,10 @@ kill_timeout = '2m0s'
 # Experimental port uses (UDP)
 [[services]]
   protocol = 'udp'
-  internal_port = 3072
+  internal_port = 1536
 
   [[services.ports]]
-    port = 3072
+    port = 1536
 
   [services.concurrency]
     type = 'connections'
@@ -154,6 +154,34 @@ kill_timeout = '2m0s'
 
   [[services.ports]]
     port = 22
+
+  [services.concurrency]
+    type = 'connections'
+    hard_limit = 1024
+    soft_limit = 768
+
+# VNC service
+# TCP version, use port 5900
+[[services]]
+  protocol = 'tcp'
+  internal_port = 5900
+
+  [[services.ports]]
+    port = 5900
+
+  [services.concurrency]
+    type = 'connections'
+    hard_limit = 1024
+    soft_limit = 768
+
+# VNC service
+# UDP version, use port 5900
+[[services]]
+  protocol = 'udp'
+  internal_port = 5900
+
+  [[services.ports]]
+    port = 5900
 
   [services.concurrency]
     type = 'connections'
@@ -188,15 +216,29 @@ kill_timeout = '2m0s'
 
 
 ################################
-# Expose tor socks5 proxy
+# Expose tor socks and http proxy
 # Because we have it, so why not
 
+# Socks Poxy
 [[services]]
   protocol = 'tcp'
   internal_port = 9050
 
   [[services.ports]]
     port = 2160
+
+  [services.concurrency]
+    type = 'connections'
+    hard_limit = 1024
+    soft_limit = 768
+
+# HTTP CONNECT Proxy
+[[services]]
+  protocol = 'tcp'
+  internal_port = 8050
+
+  [[services.ports]]
+    port = 2060
 
   [services.concurrency]
     type = 'connections'

@@ -18,14 +18,14 @@ RUN wget -qO- https://github.com/XTLS/Xray-core/releases/latest/download/Xray-li
 # Configure Xray
 COPY xray/xray.json config/xray.json.var
 
-# Configure Nginx
-COPY nginx/nginx.conf config/
+# Configure Caddy
+COPY caddy/Caddyfile config/
 
 # Configure torrc
 COPY tor/torrc config/
 
-# Copy mikutap to Nginx index page
-COPY nginx/mikutap/. index/
+# Copy mikutap to Caddy index page
+COPY caddy/mikutap/. index/
 
 # Create robots.txt
 RUN echo -e "User-agent: *\nDisallow: /" > index/robots.txt
@@ -67,7 +67,7 @@ RUN CGO_ENABLED=0 go install ./cmd/frps
 FROM alpine:edge AS main
 
 # Install runtime dependencies
-RUN apk add --no-cache ca-certificates nginx tor bind-tools
+RUN apk add --no-cache ca-certificates caddy tor bind-tools
 
 # Copy the entire app directory from build stage
 COPY --from=xray-builder /app /app

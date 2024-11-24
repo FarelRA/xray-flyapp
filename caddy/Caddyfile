@@ -1,4 +1,5 @@
 {
+	debug
 	admin off
 	log {
 		output stdout
@@ -7,8 +8,10 @@
 
 	servers {
 		enable_full_duplex
-		protocols h1 h2c
+		protocols h1 h2 h2c
 	}
+
+	auto_https disable_redirects
 }
 
 :8080 {
@@ -27,7 +30,7 @@
 	reverse_proxy @vmess_h2 unix//app/sockets/vmess.h2 {
 		flush_interval -1
 		transport http {
-			versions h2c
+			versions h2c h2
 		}
 	}
 
@@ -36,7 +39,12 @@
 		header Connection *Upgrade*
 		header Upgrade websocket
 	}
-	reverse_proxy @vmess_ws unix//app/sockets/vmess.ws
+	reverse_proxy @vmess_ws unix//app/sockets/vmess.ws {
+		flush_interval -1
+		transport http {
+			versions h1
+		}
+	}
 
 	@vmess_grpc {
 		path /vmess-grpc/*
@@ -45,7 +53,7 @@
 	reverse_proxy @vmess_grpc unix//app/sockets/vmess.grpc {
 		flush_interval -1
 		transport http {
-			versions h2c
+			versions h2c h2
 		}
 	}
 
@@ -54,7 +62,7 @@
 	reverse_proxy @vless_h2 unix//app/sockets/vless.h2 {
 		flush_interval -1
 		transport http {
-			versions h2c
+			versions h2c h2
 		}
 	}
 
@@ -63,7 +71,12 @@
 		header Connection *Upgrade*
 		header Upgrade websocket
 	}
-	reverse_proxy @vless_ws unix//app/sockets/vless.ws
+	reverse_proxy @vless_ws unix//app/sockets/vless.ws {
+		flush_interval -1
+		transport http {
+			versions h1
+		}
+	}
 
 	@vless_grpc {
 		path /vless-grpc/*
@@ -72,7 +85,7 @@
 	reverse_proxy @vless_grpc unix//app/sockets/vless.grpc {
 		flush_interval -1
 		transport http {
-			versions h2c
+			versions h2c h2
 		}
 	}
 
@@ -81,7 +94,7 @@
 	reverse_proxy @trojan_h2 unix//app/sockets/trojan.h2 {
 		flush_interval -1
 		transport http {
-			versions h2c
+			versions h2c h2
 		}
 	}
 
@@ -90,7 +103,12 @@
 		header Connection *Upgrade*
 		header Upgrade websocket
 	}
-	reverse_proxy @trojan_ws unix//app/sockets/trojan.ws
+	reverse_proxy @trojan_ws unix//app/sockets/trojan.ws {
+		flush_interval -1
+		transport http {
+			versions h1
+		}
+	}
 
 	@trojan_grpc {
 		path /trojan-grpc/*
@@ -99,7 +117,7 @@
 	reverse_proxy @trojan_grpc unix//app/sockets/trojan.grpc {
 		flush_interval -1
 		transport http {
-			versions h2c
+			versions h2c h2
 		}
 	}
 
@@ -108,7 +126,7 @@
 	reverse_proxy @socks_h2 unix//app/sockets/socks.h2 {
 		flush_interval -1
 		transport http {
-			versions h2c
+			versions h2c h2
 		}
 	}
 
@@ -117,7 +135,12 @@
 		header Connection *Upgrade*
 		header Upgrade websocket
 	}
-	reverse_proxy @socks_ws unix//app/sockets/socks.ws
+	reverse_proxy @socks_ws unix//app/sockets/socks.ws {
+		flush_interval -1
+		transport http {
+			versions h1
+		}
+	}
 
 	@socks_grpc {
 		path /socks-grpc/*
@@ -126,7 +149,7 @@
 	reverse_proxy @socks_grpc unix//app/sockets/socks.grpc {
 		flush_interval -1
 		transport http {
-			versions h2c
+			versions h2c h2
 		}
 	}
 }

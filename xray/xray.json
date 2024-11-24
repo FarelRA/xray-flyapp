@@ -1,90 +1,124 @@
 {
-    "log": {
-        "loglevel": "info",
-        "dnsLog": true
+  "log": {
+    "loglevel": "info",
+    "dnsLog": true
+  },
+
+  "dns": {
+    "tag": "dns_inbound",
+    "servers": [
+      "1.0.0.1",
+      "1.1.1.1",
+      "localhost"
+    ]
+  },
+
+  "inbounds": [
+    {
+      "tag": "vmess-h2",
+      "listen": "/app/sockets/vmess.h2","protocol": "vmess",
+      "settings": {"clients": [{"id": "$UUID"}]},
+      "streamSettings": {"network": "http","httpSettings": {"path": "/vmess-h2"}},
+      "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
     },
-    "inbounds": [
-        {
-            "listen": "/app/sockets/vmess.h2","protocol": "vmess",
-            "settings": {"clients": [{"id": "$UUID"}]},
-            "streamSettings": {"network": "http","httpSettings": {"path": "/vmess-h2"}}
-        },
-        {
-            "listen": "/app/sockets/vmess.ws","protocol": "vmess",
-            "settings": {"clients": [{"id": "$UUID"}]},
-            "streamSettings": {"network": "ws","wsSettings": {"path": "/vmess-ws"}}
-        },
-        {
-            "listen": "/app/sockets/vmess.grpc","protocol": "vmess",
-            "settings": {"clients": [{"id": "$UUID"}]},
-            "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "vmess-grpc"}}
-        },
-        {
-            "listen": "/app/sockets/vless.h2","protocol": "vless",
-            "settings": {"clients": [{"id": "$UUID"}],"decryption": "none"},
-            "streamSettings": {"network": "http","httpSettings": {"path": "/vless-h2"}}
-        },
-        {
-            "listen": "/app/sockets/vless.ws","protocol": "vless",
-            "settings": {"clients": [{"id": "$UUID"}],"decryption": "none"},
-            "streamSettings": {"network": "ws","wsSettings": {"path": "/vless-ws"}}
-        },
-        {
-            "listen": "/app/sockets/vless.grpc","protocol": "vless",
-            "settings": {"clients": [{"id": "$UUID"}],"decryption": "none"},
-            "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "vless-grpc"}}
-        },
-        {
-            "listen": "/app/sockets/trojan.h2","protocol": "trojan",
-            "settings": {"clients": [{"password":"$UUID"}]},
-            "streamSettings": {"network": "http","httpSettings": {"path": "/trojan-h2"}}
-        },
-        {
-            "listen": "/app/sockets/trojan.ws","protocol": "trojan",
-            "settings": {"clients": [{"password":"$UUID"}]},
-            "streamSettings": {"network": "ws","wsSettings": {"path": "/trojan-ws"}}
-        },
-        {
-            "listen": "/app/sockets/trojan.grpc","protocol": "trojan",
-            "settings": {"clients": [{"password":"$UUID"}]},
-            "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "trojan-grpc"}}
-        },
-        {
-            "listen": "/app/sockets/socks.h2","protocol": "socks",
-            "settings": {"auth": "password","accounts": [{"user": "socks","pass": "$UUID"}]},
-            "streamSettings": {"network": "http","httpSettings": {"path": "/socks-h2"}}
-        },
-        {
-            "listen": "/app/sockets/socks.ws","protocol": "socks",
-            "settings": {"auth": "password","accounts": [{"user": "socks","pass": "$UUID"}]},
-            "streamSettings": {"network": "ws","wsSettings": {"path": "/socks-ws"}}
-        },
-        {
-            "listen": "/app/sockets/socks.grpc","protocol": "socks",
-            "settings": {"auth": "password","accounts": [{"user": "socks","pass": "$UUID"}]},
-            "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "socks-grpc"}}
-        }
-    ],
-    
-    "outbounds": [
-        {"protocol": "freedom","tag": "direct","settings": {}},
-        {"protocol": "blackhole","tag": "block","settings": {}},
-        {"protocol": "socks","tag": "sockstor","settings": {"servers": [{"address": "127.0.0.1","port": 9050}]}},
-        {"protocol": "freedom","tag": "localtcp","settings": {"redirect": "127.0.0.1:0"}},
-        {"protocol": "freedom","tag": "localudp","settings": {"redirect": "$udpBindAddr:0"}}
-    ],
-
-    "routing": {
-        "rules": [
-            {"type": "field","domain": ["geosite:category-ads-all"],"outboundTag": "block"},
-            {"type": "field","domain": ["geosite:tor"],"outboundTag": "sockstor"},
-
-            {"type": "field","domain": ["full:$appName.fly.dev"],"port": "7000","network": "tcp","outboundTag": "localtcp"},
-            {"type": "field","ip": ["$appIP"],"port": "7000","network": "tcp","outboundTag": "localtcp"},
-            {"type": "field","domain": ["full:$appName.fly.dev"],"port": "7001,7002","network": "udp","outboundTag": "localudp"},
-            {"type": "field","ip": ["$appIP"],"port": "7001,7002","network": "udp","outboundTag": "localudp"},
-
-            {"type": "field","port": "0-65535","outboundTag": "direct"}
-        ]
+    {
+      "tag": "vmess-ws",
+      "listen": "/app/sockets/vmess.ws","protocol": "vmess",
+      "settings": {"clients": [{"id": "$UUID"}]},
+      "streamSettings": {"network": "ws","wsSettings": {"path": "/vmess-ws"}},
+      "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
+    },
+    {
+      "tag": "vmess-grpc",
+      "listen": "/app/sockets/vmess.grpc","protocol": "vmess",
+      "settings": {"clients": [{"id": "$UUID"}]},
+      "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "vmess-grpc"}},
+      "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
+    },
+    {
+      "tag": "vless-h2",
+      "listen": "/app/sockets/vless.h2","protocol": "vless",
+      "settings": {"clients": [{"id": "$UUID"}],"decryption": "none"},
+      "streamSettings": {"network": "http","httpSettings": {"path": "/vless-h2"}},
+      "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
+    },
+    {
+      "tag": "vless-ws",
+      "listen": "/app/sockets/vless.ws","protocol": "vless",
+      "settings": {"clients": [{"id": "$UUID"}],"decryption": "none"},
+      "streamSettings": {"network": "ws","wsSettings": {"path": "/vless-ws"}},
+      "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
+    },
+    {
+      "tag": "vless-grpc",
+      "listen": "/app/sockets/vless.grpc","protocol": "vless",
+      "settings": {"clients": [{"id": "$UUID"}],"decryption": "none"},
+      "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "vless-grpc"}},
+      "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
+    },
+    {
+      "tag": "trojan-h2",
+      "listen": "/app/sockets/trojan.h2","protocol": "trojan",
+      "settings": {"clients": [{"password":"$UUID"}]},
+      "streamSettings": {"network": "http","httpSettings": {"path": "/trojan-h2"}},
+      "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
+    },
+    {
+      "tag": "trojan-ws",
+      "listen": "/app/sockets/trojan.ws","protocol": "trojan",
+      "settings": {"clients": [{"password":"$UUID"}]},
+      "streamSettings": {"network": "ws","wsSettings": {"path": "/trojan-ws"}},
+      "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
+    },
+    {
+      "tag": "trojan-grpc",
+      "listen": "/app/sockets/trojan.grpc","protocol": "trojan",
+      "settings": {"clients": [{"password":"$UUID"}]},
+      "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "trojan-grpc"}},
+      "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
+    },
+    {
+      "tag": "socks-h2",
+      "listen": "/app/sockets/socks.h2","protocol": "socks",
+      "settings": {"auth": "password","accounts": [{"user": "socks","pass": "$UUID"}]},
+      "streamSettings": {"network": "http","httpSettings": {"path": "/socks-h2"}},
+      "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
+    },
+    {
+      "tag": "socks-ws",
+      "listen": "/app/sockets/socks.ws","protocol": "socks",
+      "settings": {"auth": "password","accounts": [{"user": "socks","pass": "$UUID"}]},
+      "streamSettings": {"network": "ws","wsSettings": {"path": "/socks-ws"}},
+      "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
+    },
+    {
+      "tag": "socks-grpc",
+      "listen": "/app/sockets/socks.grpc","protocol": "socks",
+      "settings": {"auth": "password","accounts": [{"user": "socks","pass": "$UUID"}]},
+      "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "socks-grpc"}},
+      "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
     }
+  ],
+
+  "outbounds": [
+    {"tag": "block","protocol": "blackhole","settings": {}},
+    {"tag": "direct","protocol": "freedom","settings": {}},
+    {"tag": "localtcp","protocol": "freedom","settings": {"redirect": "127.0.0.1:0"}},
+    {"tag": "localudp","protocol": "freedom","settings": {"redirect": "$udpBindAddr:0"}},
+    {"tag": "sockstor","protocol": "socks","settings": {"servers": [{"address": "127.0.0.1","port": 9050}]}}
+  ],
+
+  "routing": {
+    "rules": [
+      {"type": "field","domain": ["geosite:category-ads-all"],"outboundTag": "block"},
+      {"type": "field","domain": ["geosite:tor"],"outboundTag": "sockstor"},
+
+      {"type": "field","domain": ["full:$appName.fly.dev"],"port": "7000","network": "tcp","outboundTag": "localtcp"},
+      {"type": "field","ip": ["$appIP"],"port": "7000","network": "tcp","outboundTag": "localtcp"},
+      {"type": "field","domain": ["full:$appName.fly.dev"],"port": "7001,7002","network": "udp","outboundTag": "localudp"},
+      {"type": "field","ip": ["$appIP"],"port": "7001,7002","network": "udp","outboundTag": "localudp"},
+
+      {"type": "field","port": "0-65535","outboundTag": "direct"}
+    ]
+  }
 }

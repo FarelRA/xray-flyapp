@@ -63,20 +63,48 @@ RUN CGO_ENABLED=0 go install ./cmd/frps
 
 
 
+# Build stage for openssh
+FROM alpine:edge AS ssh-builder
+
+# Install openssh
+RUN apk add --no-cache openssh
+
+# Crate `.ssh` directory
+RUN mkdir -p /root/.ssh
+
+# Set permission
+RUN chmod 0700 /root/.ssh
+
+# Disallow password authentication
+RUN echo -e "PasswordAuthentication no" >> /etc/ssh/sshd_config
+
+# Set sshd port
+RUN echo -e "Port 7022" >> /etc/ssh/sshd_config
+
+# Generate ssh keys
+RUN ssh-keygen -A
+
+
+
+
 # Runtime stage
 FROM alpine:edge AS main
 
 # Install runtime dependencies
-RUN apk add --no-cache ca-certificates caddy tor bind-tools
+RUN apk add --no-cache ca-certificates caddy tor bind-tools openssh bash
+
+# Copy config from build stage
+COPY --from=ssh-builder /etc/ssh /etc/ssh
+COPY --from=ssh-builder /root/.ssh /root/.ssh
 
 # Copy the entire app directory from build stage
 COPY --from=xray-builder /app /app
 
+# Copy frps binary from build stage
+COPY --from=frp-builder /go/bin/frps /app
+
 # Set working directory
 WORKDIR /app
-
-# Copy frps binary from build stage
-COPY --from=frp-builder /go/bin/frps .
 
 # Copy frps configuration file
 COPY frps.toml config/

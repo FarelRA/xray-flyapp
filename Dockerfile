@@ -1,5 +1,5 @@
 # Build stage
-FROM alpine:edge AS xray-builder
+FROM alpine:latest AS xray-builder
 
 # Install build dependencies
 RUN apk add --no-cache wget busybox unzip
@@ -64,7 +64,7 @@ RUN CGO_ENABLED=0 go install ./cmd/frps
 
 
 # Build stage for openssh
-FROM alpine:edge AS ssh-builder
+FROM alpine:latest AS ssh-builder
 
 # Install openssh
 RUN apk add --no-cache openssh
@@ -88,10 +88,10 @@ RUN ssh-keygen -A
 
 
 # Runtime stage
-FROM alpine:edge AS main
+FROM nginx:alpine AS main
 
 # Install runtime dependencies
-RUN apk add --no-cache ca-certificates nginx tor bind-tools openssh bash
+RUN apk add --no-cache ca-certificates tor bind-tools openssh bash
 
 # Copy config from build stage
 COPY --from=ssh-builder /etc/ssh /etc/ssh

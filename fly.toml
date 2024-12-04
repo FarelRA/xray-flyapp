@@ -6,7 +6,7 @@ app = 'farel'
 primary_region = 'sin'
 
 [env]
-cloudflareIP = 'cp.cloudflare.com'
+cloudflareIP = '162.158.248.136'
 sshPubKey = 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHZ2+s38OZO9N/nxhyz4K8K4bk29h8gSSZ5LQk3FKVdy farel@CachyOS'
 ParameterSSENCYPT = 'chacha20-ietf-poly1305'
 

@@ -168,7 +168,7 @@ if [[ -z "${UDP_BIND_ADDR}" ]]; then
 fi
 
 # Ensure required variables are set
-declare -a REQUIRED_VARS=("UUID" "ParameterSSENCYPT" "sshPubKey" "hosts" "cloudflareIP")
+declare -a REQUIRED_VARS=("UUID" "ParameterSSENCYPT" "sshPubKey" "cloudflareIP")
 for var in "${REQUIRED_VARS[@]}"; do
     if [[ -z "${!var:-}" ]]; then
         log "ERROR: ${var} is not set"

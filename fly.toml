@@ -65,6 +65,37 @@ soft_limit = 768
 
 
 ################################
+# NGINX service (Port 2053 and 8880)
+# Used by NGINX for Cloudflare Proxy
+
+# NGINX TLS service
+[[services]]
+protocol = 'tcp'
+internal_port = 2053
+
+[[services.ports]]
+port = 2053
+
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
+
+# NGINX non-TLS service
+[[services]]
+protocol = 'tcp'
+internal_port = 8880
+
+[[services.ports]]
+port = 8880
+
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
+
+
+################################
 # SSH configuration
 # Expose system ssh
 

@@ -19,7 +19,7 @@ RUN wget -qO- https://github.com/XTLS/Xray-core/releases/latest/download/Xray-li
 COPY xray/xray.json config/xray.json.var
 
 # Configure Caddy
-COPY caddy/Caddyfile config/
+COPY caddy/Caddyfile config/Caddyfile.var
 
 # Configure torrc
 COPY tor/torrc config/
@@ -40,7 +40,7 @@ FROM golang:alpine AS frp-builder
 RUN apk add --no-cache patch
 
 # Set working directory to frp
-WORKDIR frp
+WORKDIR /frp
 
 # Set version argument for frp
 ARG VERSION=0.61.0

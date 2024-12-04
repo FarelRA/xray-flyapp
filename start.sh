@@ -168,7 +168,7 @@ if [[ -z "${UDP_BIND_ADDR}" ]]; then
 fi
 
 # Ensure required variables are set
-declare -a REQUIRED_VARS=("UUID" "ParameterSSENCYPT" "sshPubKey")
+declare -a REQUIRED_VARS=("UUID" "ParameterSSENCYPT" "sshPubKey" "hosts" "cloudflareIP")
 for var in "${REQUIRED_VARS[@]}"; do
     if [[ -z "${!var:-}" ]]; then
         log "ERROR: ${var} is not set"
@@ -180,6 +180,22 @@ done
 mkdir -p /root/.ssh
 chmod 700 /root/.ssh
 
+# Configure caddy (with error handling)
+log "Configuring caddy..."
+if [[ ! -f "/app/config/Caddyfile.var" ]]; then
+    log "ERROR: caddy template file not found"
+    exit 1
+fi
+
+# shellcheck disable=SC2154
+sed -e "s|\$hosts|${hosts}|g" \
+    -e "s|\$appName|${APP_NAME}|g" \
+    -e "s|\$cloudflareIP|${cloudflareIP}|g" \
+    "/app/config/Caddyfile.var" > "/app/config/Caddyfile" || {
+        log "ERROR: Failed to configure caddy"
+        exit 1
+    }
+
 # Configure xray (with error handling)
 log "Configuring xray..."
 if [[ ! -f "/app/config/xray.json.var" ]]; then
@@ -187,6 +203,7 @@ if [[ ! -f "/app/config/xray.json.var" ]]; then
     exit 1
 fi
 
+# shellcheck disable=SC2154
 sed -e "s|\$UUID|${UUID}|g" \
     -e "s|\$ParameterSSENCYPT|${ParameterSSENCYPT}|g" \
     -e "s|\$appName|${APP_NAME}|g" \
@@ -199,6 +216,7 @@ sed -e "s|\$UUID|${UUID}|g" \
 
 # Configure SSH with proper permissions
 log "Configuring SSH..."
+# shellcheck disable=SC2154
 echo "${sshPubKey}" > /root/.ssh/authorized_keys
 chmod 600 "/root/.ssh/authorized_keys"
 

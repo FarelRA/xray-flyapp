@@ -6,13 +6,15 @@ app = 'farel'
 primary_region = 'sin'
 
 [env]
-  sshPubKey = 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHZ2+s38OZO9N/nxhyz4K8K4bk29h8gSSZ5LQk3FKVdy farel@CachyOS'
-  ParameterSSENCYPT = 'chacha20-ietf-poly1305'
+hosts = 'fly.farelra.my.id fly.proxy.farelra.my.id'
+cloudflareIP = '162.158.248.136'
+sshPubKey = 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHZ2+s38OZO9N/nxhyz4K8K4bk29h8gSSZ5LQk3FKVdy farel@CachyOS'
+ParameterSSENCYPT = 'chacha20-ietf-poly1305'
 
 [[vm]]
-  cpu_kind = "shared"
-  cpus = 1
-  memory_mb = 256
+cpu_kind = "shared"
+cpus = 1
+memory_mb = 256
 
 
 ################################
@@ -23,8 +25,8 @@ kill_signal = 'SIGTERM'
 kill_timeout = '2m0s'
 
 [build]
-  dockerfile = 'Dockerfile'
-  build-target = 'main'
+dockerfile = 'Dockerfile'
+build-target = 'main'
 
 
 ################################
@@ -33,34 +35,34 @@ kill_timeout = '2m0s'
 
 # Caddy TLS service
 [[services]]
-  protocol = 'tcp'
-  internal_port = 8080
+protocol = 'tcp'
+internal_port = 8080
 
-  [[services.ports]]
-    port = 443
-    handlers = ['tls']
+[[services.ports]]
+port = 443
+handlers = ['tls']
 
-    [services.ports.tls_options]
-      alpn = [ "h2", "http/1.1" ]
-      versions = [ "TLSv1.2", "TLSv1.3" ]
+[services.ports.tls_options]
+alpn = ["h2", "http/1.1"]
+versions = ["TLSv1.2", "TLSv1.3"]
 
-  [services.concurrency]
-    type = 'connections'
-    hard_limit = 1024
-    soft_limit = 768
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
 
 # Caddy non-TLS service
 [[services]]
-  protocol = 'tcp'
-  internal_port = 8080
+protocol = 'tcp'
+internal_port = 8080
 
-  [[services.ports]]
-    port = 80
+[[services.ports]]
+port = 80
 
-  [services.concurrency]
-    type = 'connections'
-    hard_limit = 1024
-    soft_limit = 768
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
 
 
 ################################
@@ -69,16 +71,16 @@ kill_timeout = '2m0s'
 
 # SSH service (TCP)
 [[services]]
-  protocol = 'tcp'
-  internal_port = 7022
+protocol = 'tcp'
+internal_port = 7022
 
-  [[services.ports]]
-    port = 7022
+[[services.ports]]
+port = 7022
 
-  [services.concurrency]
-    type = 'connections'
-    hard_limit = 1024
-    soft_limit = 768
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
 
 
 ################################
@@ -87,56 +89,56 @@ kill_timeout = '2m0s'
 
 # Web pannel on 8443
 [[services]]
-  protocol = 'tcp'
-  internal_port = 8443
+protocol = 'tcp'
+internal_port = 8443
 
-  [[services.ports]]
-    port = 8443
-    handlers = ['tls', 'http']
+[[services.ports]]
+port = 8443
+handlers = ['tls', 'http']
 
-  [services.concurrency]
-    type = 'connections'
-    hard_limit = 1024
-    soft_limit = 768
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
 
 # TCP connection service on 7000
 [[services]]
-  protocol = 'tcp'
-  internal_port = 7000
+protocol = 'tcp'
+internal_port = 7000
 
-  [[services.ports]]
-    port = 7000
+[[services.ports]]
+port = 7000
 
-  [services.concurrency]
-    type = 'connections'
-    hard_limit = 1024
-    soft_limit = 768
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
 
 # UDP (KCP) connection service on 7001
 [[services]]
-  protocol = 'udp'
-  internal_port = 7001
+protocol = 'udp'
+internal_port = 7001
 
-  [[services.ports]]
-    port = 7001
+[[services.ports]]
+port = 7001
 
-  [services.concurrency]
-    type = 'connections'
-    hard_limit = 1024
-    soft_limit = 768
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
 
 # UDP (Quic) connection service on 7002
 [[services]]
-  protocol = 'udp'
-  internal_port = 7002
+protocol = 'udp'
+internal_port = 7002
 
-  [[services.ports]]
-    port = 7002
+[[services.ports]]
+port = 7002
 
-  [services.concurrency]
-    type = 'connections'
-    hard_limit = 1024
-    soft_limit = 768
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
 
 
 ################################
@@ -145,97 +147,97 @@ kill_timeout = '2m0s'
 
 # Experimental port uses (TCP)
 [[services]]
-  protocol = 'tcp'
-  internal_port = 1536
+protocol = 'tcp'
+internal_port = 1536
 
-  [[services.ports]]
-    port = 1536
+[[services.ports]]
+port = 1536
 
-  [services.concurrency]
-    type = 'connections'
-    hard_limit = 1024
-    soft_limit = 768
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
 
 # Experimental port uses (UDP)
 [[services]]
-  protocol = 'udp'
-  internal_port = 1536
+protocol = 'udp'
+internal_port = 1536
 
-  [[services.ports]]
-    port = 1536
+[[services.ports]]
+port = 1536
 
-  [services.concurrency]
-    type = 'connections'
-    hard_limit = 1024
-    soft_limit = 768
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
 
 # SSH service (TCP)
 # Forwarded to 8022 then open to port 22 by fly
 [[services]]
-  protocol = 'tcp'
-  internal_port = 8022
+protocol = 'tcp'
+internal_port = 8022
 
-  [[services.ports]]
-    port = 22
+[[services.ports]]
+port = 2222
 
-  [services.concurrency]
-    type = 'connections'
-    hard_limit = 1024
-    soft_limit = 768
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
 
 # VNC service
 # TCP version, use port 5900
 [[services]]
-  protocol = 'tcp'
-  internal_port = 5900
+protocol = 'tcp'
+internal_port = 5900
 
-  [[services.ports]]
-    port = 5900
+[[services.ports]]
+port = 5900
 
-  [services.concurrency]
-    type = 'connections'
-    hard_limit = 1024
-    soft_limit = 768
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
 
 # VNC service
 # UDP version, use port 5900
 [[services]]
-  protocol = 'udp'
-  internal_port = 5900
+protocol = 'udp'
+internal_port = 5900
 
-  [[services.ports]]
-    port = 5900
+[[services.ports]]
+port = 5900
 
-  [services.concurrency]
-    type = 'connections'
-    hard_limit = 1024
-    soft_limit = 768
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
 
 # Minecraft Java (TCP)
 [[services]]
-  protocol = 'tcp'
-  internal_port = 25565
+protocol = 'tcp'
+internal_port = 25565
 
-  [[services.ports]]
-    port = 25565
+[[services.ports]]
+port = 25565
 
-  [services.concurrency]
-    type = 'connections'
-    hard_limit = 1024
-    soft_limit = 768
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
 
 # Minecraft Java (UDP)
 [[services]]
-  protocol = 'udp'
-  internal_port = 19132
+protocol = 'udp'
+internal_port = 19132
 
-  [[services.ports]]
-    port = 19132
+[[services.ports]]
+port = 19132
 
-  [services.concurrency]
-    type = 'connections'
-    hard_limit = 1024
-    soft_limit = 768
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
 
 
 ################################
@@ -244,26 +246,26 @@ kill_timeout = '2m0s'
 
 # Socks Poxy
 [[services]]
-  protocol = 'tcp'
-  internal_port = 9050
+protocol = 'tcp'
+internal_port = 9050
 
-  [[services.ports]]
-    port = 2160
+[[services.ports]]
+port = 2160
 
-  [services.concurrency]
-    type = 'connections'
-    hard_limit = 1024
-    soft_limit = 768
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
 
 # HTTP CONNECT Proxy
 [[services]]
-  protocol = 'tcp'
-  internal_port = 8050
+protocol = 'tcp'
+internal_port = 8050
 
-  [[services.ports]]
-    port = 2060
+[[services.ports]]
+port = 2060
 
-  [services.concurrency]
-    type = 'connections'
-    hard_limit = 1024
-    soft_limit = 768
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768

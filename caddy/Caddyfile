@@ -18,11 +18,12 @@
 	root * /app/index
 	file_server browse
 
-	header {
-		X-Robots-Tag "none"
-		X-Content-Type-Options "nosniff"
-		X-Frame-Options "DENY"
-		Referrer-Policy "no-referrer-when-downgrade"
+	# Conditional proxy for Cloudflare when Host is unrecognized
+	@cloudflare not host $hosts $appName.fly.dev
+	reverse_proxy @cloudflare $cloudflareIP {
+		flush_interval -1
+		header_up Host {host}
+		header_up X-Forwarded-For {remote_host}
 	}
 
 	# HTTP/2, WebSocket, and gRPC configurations for vmess

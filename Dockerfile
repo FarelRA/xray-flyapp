@@ -18,14 +18,14 @@ RUN wget -qO- https://github.com/XTLS/Xray-core/releases/latest/download/Xray-li
 # Configure Xray
 COPY xray/xray.json config/xray.json.var
 
-# Configure Caddy
-COPY caddy/Caddyfile config/Caddyfile.var
+# Configure NGINX
+COPY nginx/nginx.conf config/nginx.conf.var
 
 # Configure torrc
 COPY tor/torrc config/
 
-# Copy mikutap to Caddy index page
-COPY caddy/mikutap/. index/
+# Copy mikutap to NGINX index page
+COPY nginx/mikutap/. index/
 
 # Create robots.txt
 RUN echo -e "User-agent: *\nDisallow: /" > index/robots.txt
@@ -91,7 +91,7 @@ RUN ssh-keygen -A
 FROM alpine:edge AS main
 
 # Install runtime dependencies
-RUN apk add --no-cache ca-certificates caddy tor bind-tools openssh bash
+RUN apk add --no-cache ca-certificates nginx tor bind-tools openssh bash
 
 # Copy config from build stage
 COPY --from=ssh-builder /etc/ssh /etc/ssh

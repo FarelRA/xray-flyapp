@@ -180,23 +180,20 @@ done
 mkdir -p /root/.ssh
 chmod 700 /root/.ssh
 
-# Configure caddy (with error handling)
-log "Configuring caddy..."
-if [[ ! -f "/app/config/Caddyfile.var" ]]; then
-    log "ERROR: caddy template file not found"
+# Configure NGINX
+if [[ ! -f "/app/config/nginx.conf.var" ]]; then
+    log "ERROR: NGINX template file not found"
     exit 1
 fi
 
 # shellcheck disable=SC2154
-sed -e "s|\$hosts|${hosts}|g" \
-    -e "s|\$appName|${APP_NAME}|g" \
-    -e "s|\$cloudflareIP|${cloudflareIP}|g" \
-    "/app/config/Caddyfile.var" > "/app/config/Caddyfile" || {
-        log "ERROR: Failed to configure caddy"
+sed -e "s|\$cloudflareIP|${cloudflareIP}|g" \
+    "/app/config/nginx.conf.var" > "/app/config/nginx.conf" || {
+        log "ERROR: Failed to configure NGINX"
         exit 1
     }
 
-# Configure xray (with error handling)
+# Configure xray
 log "Configuring xray..."
 if [[ ! -f "/app/config/xray.json.var" ]]; then
     log "ERROR: xray template file not found"
@@ -225,7 +222,7 @@ declare -A daemons=(
     ["sshd"]="/usr/sbin/sshd -D -e"
     ["tor"]="tor -f /app/config/torrc"
     ["xray"]="/app/xray/xray -config /app/config/xray.json"
-    ["caddy"]="caddy run --config /app/config/Caddyfile --adapter caddyfile"
+    ["nginx"]="nginx -c /app/config/nginx.conf"
     ["frps"]="/app/frps -c /app/config/frps.toml"
 )
 

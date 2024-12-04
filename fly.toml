@@ -6,7 +6,6 @@ app = 'farel'
 primary_region = 'sin'
 
 [env]
-hosts = 'fly.farelra.my.id fly.proxy.farelra.my.id'
 cloudflareIP = '162.158.248.136'
 sshPubKey = 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHZ2+s38OZO9N/nxhyz4K8K4bk29h8gSSZ5LQk3FKVdy farel@CachyOS'
 ParameterSSENCYPT = 'chacha20-ietf-poly1305'
@@ -30,10 +29,10 @@ build-target = 'main'
 
 
 ################################
-# Caddy service (Port 80 and 443)
-# Used by Caddy for Xray routing
+# NGINX service (Port 80 and 443)
+# Used by NGINX for Xray routing
 
-# Caddy TLS service
+# NGINX TLS service
 [[services]]
 protocol = 'tcp'
 internal_port = 8080
@@ -51,7 +50,7 @@ type = 'connections'
 hard_limit = 1024
 soft_limit = 768
 
-# Caddy non-TLS service
+# NGINX non-TLS service
 [[services]]
 protocol = 'tcp'
 internal_port = 8080

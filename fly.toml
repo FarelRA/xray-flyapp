@@ -51,22 +51,33 @@ soft_limit = 768
 # NGINX service (Port 80 and 443)
 # Used by NGINX for Xray routing
 
-# Expose HTTP and HTTPS service
-[http_service]
+# NGINX TLS service
+[[services]]
+protocol = 'tcp'
 internal_port = 7004
-force_https = false
 
-[http_service.http_options]
-h2_backend = true
+[[services.ports]]
+port = 443
+handlers = ['tls']
 
-[http_service.http_options.response]
-pristine = true
-
-[http_service.tls_options]
+[services.ports.tls_options]
 alpn = ["h2", "http/1.1"]
 versions = ["TLSv1.2", "TLSv1.3"]
 
-[http_service.concurrency]
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
+
+# NGINX non-TLS service
+[[services]]
+protocol = 'tcp'
+internal_port = 7004
+
+[[services.ports]]
+port = 80
+
+[services.concurrency]
 type = 'connections'
 hard_limit = 1024
 soft_limit = 768

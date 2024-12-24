@@ -118,6 +118,37 @@ soft_limit = 768
 # Xray configuration
 # Expose non-routable proxies
 
+# HTTPS proxy
+[[services]]
+protocol = 'tcp'
+internal_port = 7007
+
+[[services.ports]]
+port = 8443
+handlers = ['tls']
+
+[services.ports.tls_options]
+alpn = ["h2", "http/1.1"]
+versions = ["TLSv1.2", "TLSv1.3"]
+
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
+
+# HTTP proxy
+[[services]]
+protocol = 'tcp'
+internal_port = 7007
+
+[[services.ports]]
+port = 8080
+
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
+
 # Socks proxy (TCP)
 [[services]]
 protocol = 'tcp'
@@ -162,14 +193,28 @@ soft_limit = 768
 # frps configuration
 # Web pannel and services port
 
-# Web pannel on 7003
+# HTTPS web pannel
 [[services]]
 protocol = 'tcp'
 internal_port = 7003
 
 [[services.ports]]
-port = 8443
+port = 5443
 handlers = ['tls', 'http']
+
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
+
+# HTTP web pannel
+[[services]]
+protocol = 'tcp'
+internal_port = 7003
+
+[[services.ports]]
+port = 5000
+handlers = ['http']
 
 [services.concurrency]
 type = 'connections'

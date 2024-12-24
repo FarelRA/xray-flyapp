@@ -7,12 +7,12 @@ API_URL="https://api.github.com/repos/$OWNER/$REPO/releases/latest"
 
 # Function to extract the tarball URL from the JSON response
 fetch_tarball_url() {
-   curl -s "$1" | grep '"tarball_url":' | sed -E 's/.*"([^"]+)".*/\1/'
+   curl -Ls "$1" | grep '"tarball_url":' | sed -E 's/.*"([^"]+)".*/\1/'
 }
 
 # Function to download and extract the tarball
 download_and_extract_tarball() {
-  curl -s "$1" | tar -xz --strip-components 1
+  curl -Ls "$1" | tar -xz --strip-components 1
 }
 
 # Fetch the latest tarball URL

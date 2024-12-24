@@ -196,6 +196,10 @@ sed -e "s|\$pathPrefix|${pathPrefix}|g" \
 
 # Configure xray
 log "Configuring xray..."
+
+# Create sockets directory
+mkdir -p /app/sockets
+
 if [[ ! -f "/app/config/xray.json.var" ]]; then
     log "ERROR: xray template file not found"
     exit 1

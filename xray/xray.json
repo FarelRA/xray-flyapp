@@ -5,7 +5,10 @@
   },
 
   "dns": {
-    "tag": "dns_inbound",
+    "tag": "dns-inbound",
+    "hosts": {
+      "geosite:category-ads-all": "127.0.0.1"
+    },
     "servers": [
       "1.0.0.1",
       "1.1.1.1",
@@ -15,87 +18,117 @@
 
   "inbounds": [
     {
-      "tag": "vmess-h2",
-      "listen": "/app/sockets/vmess.h2","protocol": "vmess",
-      "settings": {"clients": [{"id": "$UUID"}]},
-      "streamSettings": {"network": "http","httpSettings": {"path": "/vmess-h2"}},
+      "tag": "http",
+      "listen": "127.0.0.1","port": 7007,"protocol": "http",
+      "settings": {"accounts": [{
+        "user": "$appName",
+        "pass": "$UUID"
+      }],"allowTransparent": false},
       "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
+    },
+    {
+      "tag": "socks",
+      "listen": "127.0.0.1","port": 7008,"protocol": "socks",
+      "settings": {"auth": "password","accounts": [{
+        "user": "$appName",
+        "pass": "$UUID"
+      }],"udp": true,"ip": "$udpBindAddr"},
+      "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
+    },
+    {
+      "tag": "shadowsocks",
+      "listen": "127.0.0.1","port": 7009,"protocol": "shadowsocks",
+      "settings": {"network": "tcp,udp","method": "$SSEncrypt","password": "$UUID"},
+      "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
+    },
+    {
+      "tag": "vmess-xh",
+      "listen": "/app/sockets/vmess.xh","protocol": "vmess",
+      "settings": {"clients": [{"id": "$UUID"}]},
+      "streamSettings": {"network": "xhttp","xhttpSettings": {
+		"mode": "auto",
+		"path": "$pathPrefix/vmess-xh"
+	  }},"sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
+    },
+    {
+      "tag": "vmess-hu",
+      "listen": "/app/sockets/vmess.hu","protocol": "vmess",
+      "settings": {"clients": [{"id": "$UUID"}]},
+      "streamSettings": {"network": "httpupgrade","httpupgradeSettings": {"path": "$pathPrefix/vmess-hu"}},
+	  "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
     },
     {
       "tag": "vmess-ws",
       "listen": "/app/sockets/vmess.ws","protocol": "vmess",
       "settings": {"clients": [{"id": "$UUID"}]},
-      "streamSettings": {"network": "ws","wsSettings": {"path": "/vmess-ws"}},
+      "streamSettings": {"network": "ws","wsSettings": {"path": "$pathPrefix/vmess-ws"}},
       "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
     },
     {
       "tag": "vmess-grpc",
       "listen": "/app/sockets/vmess.grpc","protocol": "vmess",
       "settings": {"clients": [{"id": "$UUID"}]},
-      "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "vmess-grpc"}},
+      "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "$grpcPrefix/vmess-grpc"}},
       "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
     },
     {
-      "tag": "vless-h2",
-      "listen": "/app/sockets/vless.h2","protocol": "vless",
+      "tag": "vless-xh",
+      "listen": "/app/sockets/vless.xh","protocol": "vless",
       "settings": {"clients": [{"id": "$UUID"}],"decryption": "none"},
-      "streamSettings": {"network": "http","httpSettings": {"path": "/vless-h2"}},
+      "streamSettings": {"network": "xhttp","xhttpSettings": {
+		"mode": "auto",
+		"path": "$pathPrefix/vless-xh"
+	  }},"sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
+    },
+    {
+      "tag": "vless-hu",
+      "listen": "/app/sockets/vless.hu","protocol": "vless",
+      "settings": {"clients": [{"id": "$UUID"}],"decryption": "none"},
+      "streamSettings": {"network": "httpupgrade","httpupgradeSettings": {"path": "$pathPrefix/vless-hu"}},
       "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
     },
     {
       "tag": "vless-ws",
       "listen": "/app/sockets/vless.ws","protocol": "vless",
       "settings": {"clients": [{"id": "$UUID"}],"decryption": "none"},
-      "streamSettings": {"network": "ws","wsSettings": {"path": "/vless-ws"}},
+      "streamSettings": {"network": "ws","wsSettings": {"path": "$pathPrefix/vless-ws"}},
       "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
     },
     {
       "tag": "vless-grpc",
       "listen": "/app/sockets/vless.grpc","protocol": "vless",
       "settings": {"clients": [{"id": "$UUID"}],"decryption": "none"},
-      "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "vless-grpc"}},
+      "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "$grpcPrefix/vless-grpc"}},
       "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
     },
     {
-      "tag": "trojan-h2",
-      "listen": "/app/sockets/trojan.h2","protocol": "trojan",
+      "tag": "trojan-xh",
+      "listen": "/app/sockets/trojan.xh","protocol": "trojan",
       "settings": {"clients": [{"password":"$UUID"}]},
-      "streamSettings": {"network": "http","httpSettings": {"path": "/trojan-h2"}},
+      "streamSettings": {"network": "xhttp","xhttpSettings": {
+		"mode": "auto",
+		"path": "$pathPrefix/trojan-xh"
+	  }},"sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
+    },
+    {
+      "tag": "trojan-hu",
+      "listen": "/app/sockets/trojan.hu","protocol": "trojan",
+      "settings": {"clients": [{"password":"$UUID"}]},
+      "streamSettings": {"network": "httpupgrade","httpupgradeSettings": {"path": "$pathPrefix/trojan-hu"}},
       "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
     },
     {
       "tag": "trojan-ws",
       "listen": "/app/sockets/trojan.ws","protocol": "trojan",
       "settings": {"clients": [{"password":"$UUID"}]},
-      "streamSettings": {"network": "ws","wsSettings": {"path": "/trojan-ws"}},
+      "streamSettings": {"network": "ws","wsSettings": {"path": "$pathPrefix/trojan-ws"}},
       "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
     },
     {
       "tag": "trojan-grpc",
       "listen": "/app/sockets/trojan.grpc","protocol": "trojan",
       "settings": {"clients": [{"password":"$UUID"}]},
-      "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "trojan-grpc"}},
-      "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
-    },
-    {
-      "tag": "socks-h2",
-      "listen": "/app/sockets/socks.h2","protocol": "socks",
-      "settings": {"auth": "password","accounts": [{"user": "socks","pass": "$UUID"}]},
-      "streamSettings": {"network": "http","httpSettings": {"path": "/socks-h2"}},
-      "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
-    },
-    {
-      "tag": "socks-ws",
-      "listen": "/app/sockets/socks.ws","protocol": "socks",
-      "settings": {"auth": "password","accounts": [{"user": "socks","pass": "$UUID"}]},
-      "streamSettings": {"network": "ws","wsSettings": {"path": "/socks-ws"}},
-      "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
-    },
-    {
-      "tag": "socks-grpc",
-      "listen": "/app/sockets/socks.grpc","protocol": "socks",
-      "settings": {"auth": "password","accounts": [{"user": "socks","pass": "$UUID"}]},
-      "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "socks-grpc"}},
+      "streamSettings": {"network": "grpc","grpcSettings": {"serviceName": "$grpcPrefix/trojan-grpc"}},
       "sniffing": {"enabled": true,"destOverride": ["http", "tls", "quic"]}
     }
   ],
@@ -105,11 +138,14 @@
     {"tag": "direct","protocol": "freedom","settings": {}},
     {"tag": "localtcp","protocol": "freedom","settings": {"redirect": "127.0.0.1:0"}},
     {"tag": "localudp","protocol": "freedom","settings": {"redirect": "$udpBindAddr:0"}},
-    {"tag": "sockstor","protocol": "socks","settings": {"servers": [{"address": "127.0.0.1","port": 9050}]}}
+    {"tag": "sockstor","protocol": "socks","settings": {"servers": [{"address": "127.0.0.1","port": 7011}]}}
   ],
 
   "routing": {
     "rules": [
+	  {"type": "field","ip": ["geoip:private"],"outboundTag": "block"},
+      {"type": "field","domain": ["geosite:private"],"outboundTag": "block"},
+
       {"type": "field","domain": ["geosite:category-ads-all"],"outboundTag": "block"},
       {"type": "field","domain": ["geosite:tor"],"outboundTag": "sockstor"},
 

@@ -9,7 +9,7 @@ proxyBindAddr = "0.0.0.0"
 
 # frp dashboard
 webServer.addr = "::"
-webServer.port = 8443
+webServer.port = 7003
 webServer.user = "admin"
 webServer.password = "{{ .Envs.FRP_DASHBOARD_PWD }}"
 

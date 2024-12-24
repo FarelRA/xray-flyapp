@@ -6,9 +6,10 @@ app = 'farel'
 primary_region = 'sin'
 
 [env]
-cloudflareIP = '104.24.215.58'
 sshPubKey = 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHZ2+s38OZO9N/nxhyz4K8K4bk29h8gSSZ5LQk3FKVdy farel@CachyOS'
-ParameterSSENCYPT = 'chacha20-ietf-poly1305'
+pathPrefix = '/proxy/flyio'
+cloudflareIP = '104.24.215.58'
+SSEncrypt = 'chacha20-ietf-poly1305'
 
 [[vm]]
 cpu_kind = "shared"
@@ -29,13 +30,31 @@ build-target = 'main'
 
 
 ################################
+# SSH configuration
+# Expose system ssh
+
+# SSH service (TCP)
+[[services]]
+protocol = 'tcp'
+internal_port = 7012
+
+[[services.ports]]
+port = 24
+
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
+
+
+################################
 # NGINX service (Port 80 and 443)
 # Used by NGINX for Xray routing
 
 # NGINX TLS service
 [[services]]
 protocol = 'tcp'
-internal_port = 8080
+internal_port = 7004
 
 [[services.ports]]
 port = 443
@@ -53,7 +72,7 @@ soft_limit = 768
 # NGINX non-TLS service
 [[services]]
 protocol = 'tcp'
-internal_port = 8080
+internal_port = 7004
 
 [[services.ports]]
 port = 80
@@ -71,7 +90,7 @@ soft_limit = 768
 # NGINX TLS service
 [[services]]
 protocol = 'tcp'
-internal_port = 2053
+internal_port = 7005
 
 [[services.ports]]
 port = 2053
@@ -84,7 +103,7 @@ soft_limit = 768
 # NGINX non-TLS service
 [[services]]
 protocol = 'tcp'
-internal_port = 8880
+internal_port = 7006
 
 [[services.ports]]
 port = 8880
@@ -96,16 +115,42 @@ soft_limit = 768
 
 
 ################################
-# SSH configuration
-# Expose system ssh
+# Xray configuration
+# Expose non-routable proxies
 
-# SSH service (TCP)
+# Socks proxy (TCP)
 [[services]]
 protocol = 'tcp'
-internal_port = 7022
+internal_port = 7008
 
 [[services.ports]]
-port = 7022
+port = 1080
+
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
+
+# Socks proxy (UDP)
+[[services]]
+protocol = 'udp'
+internal_port = 7008
+
+[[services.ports]]
+port = 1080
+
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
+
+# ShadowSocks proxy (TCP)
+[[services]]
+protocol = 'tcp'
+internal_port = 7009
+
+[[services.ports]]
+port = 8388
 
 [services.concurrency]
 type = 'connections'
@@ -117,10 +162,10 @@ soft_limit = 768
 # frps configuration
 # Web pannel and services port
 
-# Web pannel on 8443
+# Web pannel on 7003
 [[services]]
 protocol = 'tcp'
-internal_port = 8443
+internal_port = 7003
 
 [[services.ports]]
 port = 8443
@@ -178,10 +223,10 @@ soft_limit = 768
 # Experimental port uses (TCP)
 [[services]]
 protocol = 'tcp'
-internal_port = 1536
+internal_port = 1500
 
 [[services.ports]]
-port = 1536
+port = 1500
 
 [services.concurrency]
 type = 'connections'
@@ -191,10 +236,10 @@ soft_limit = 768
 # Experimental port uses (UDP)
 [[services]]
 protocol = 'udp'
-internal_port = 1536
+internal_port = 1500
 
 [[services.ports]]
-port = 1536
+port = 1500
 
 [services.concurrency]
 type = 'connections'
@@ -205,10 +250,10 @@ soft_limit = 768
 # Forwarded to 8022 then open to port 22 by fly
 [[services]]
 protocol = 'tcp'
-internal_port = 8022
+internal_port = 1501
 
 [[services.ports]]
-port = 2222
+port = 25
 
 [services.concurrency]
 type = 'connections'
@@ -219,7 +264,7 @@ soft_limit = 768
 # TCP version, use port 5900
 [[services]]
 protocol = 'tcp'
-internal_port = 5900
+internal_port = 1502
 
 [[services.ports]]
 port = 5900
@@ -233,7 +278,7 @@ soft_limit = 768
 # UDP version, use port 5900
 [[services]]
 protocol = 'udp'
-internal_port = 5900
+internal_port = 1502
 
 [[services.ports]]
 port = 5900
@@ -246,7 +291,7 @@ soft_limit = 768
 # Minecraft Java (TCP)
 [[services]]
 protocol = 'tcp'
-internal_port = 25565
+internal_port = 1503
 
 [[services.ports]]
 port = 25565
@@ -256,44 +301,13 @@ type = 'connections'
 hard_limit = 1024
 soft_limit = 768
 
-# Minecraft Java (UDP)
+# Minecraft Bedrock (UDP)
 [[services]]
 protocol = 'udp'
-internal_port = 19132
+internal_port = 1504
 
 [[services.ports]]
 port = 19132
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-
-################################
-# Expose tor socks and http proxy
-# Because we have it, so why not
-
-# Socks Poxy
-[[services]]
-protocol = 'tcp'
-internal_port = 9050
-
-[[services.ports]]
-port = 2160
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-# HTTP CONNECT Proxy
-[[services]]
-protocol = 'tcp'
-internal_port = 8050
-
-[[services.ports]]
-port = 2060
 
 [services.concurrency]
 type = 'connections'

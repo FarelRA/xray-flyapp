@@ -1,88 +1,67 @@
-# Build stage
+# Xray build stage
 FROM alpine:latest AS xray-builder
 
-# Install build dependencies
-RUN apk add --no-cache wget busybox unzip
-
-# Create app directories
-RUN mkdir -p /app/config /app/xray /app/index /app/sockets
+# Install dependencies
+RUN apk add --no-cache curl busybox unzip
 
 # Set working directory
 WORKDIR /app
 
 # Download and install Xray
-RUN wget -qO- https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip | \
-    busybox unzip -d xray/ - && \
-    chmod +x xray/xray
+RUN curl -sSL https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip | \
+    busybox unzip -d xray - && \
+    chmod +x xray/xray && \
+    rm -f Xray-linux-64.zip
 
-# Configure Xray
+# Copy configuration files
 COPY xray/xray.json config/xray.json.var
-
-# Configure NGINX
 COPY nginx/nginx.conf config/nginx.conf.var
-
-# Configure torrc
 COPY tor/torrc config/
-
-# Copy mikutap to NGINX index page
-COPY nginx/mikutap/. index/
-
-# Create robots.txt
-RUN echo -e "User-agent: *\nDisallow: /" > index/robots.txt
+COPY nginx/mikutap/ index/
 
 
 
 
-# Build stage for frps
+# FRP build stage
 FROM golang:alpine AS frp-builder
 
-# Install patch utility
-RUN apk add --no-cache patch
+# Install build dependencies
+RUN apk add --no-cache curl patch make
 
-# Set working directory to frp
+# Set working directory
 WORKDIR /frp
 
-# Set version argument for frp
-ARG VERSION=0.61.0
+# Copy 'get_frp.sh' script and download FRP source code
+COPY scripts/get_frp.sh get_frp.sh
+RUN sh get_frp.sh
 
-# Download and extract frp source code
-RUN wget -qO- https://github.com/fatedier/frp/archive/refs/tags/v${VERSION}.tar.gz | tar -xz --strip-components 1
-
-# Copy patch files to the container
-ADD patches patches
-
-# Apply patch for UDP proxy with fly-global-services
-RUN patch -p1 < patches/udp-proxy-fly-global-services.patch
-
-# Apply patch for KCP and QUIC with fly-global-services
-RUN patch -p1 < patches/kcp-quic-fly-global-services.patch
+# Copy patch files and apply them
+COPY frp/patches/ patches/
+RUN patch -p1 < patches/udp-proxy-fly-global-services.patch && \
+    patch -p1 < patches/kcp-quic-fly-global-services.patch
 
 # Build frps binary
-RUN CGO_ENABLED=0 go install ./cmd/frps
+RUN make frps
+
+# Copy the built binary
+WORKDIR /app
+RUN cp /frp/bin/frps .
+
+# Copy configuration file
+COPY frp/frps.toml config/
 
 
 
 
-# Build stage for openssh
+# SSH build stage
 FROM alpine:latest AS ssh-builder
 
-# Install openssh
+# Install OpenSSH
 RUN apk add --no-cache openssh
 
-# Crate `.ssh` directory
-RUN mkdir -p /root/.ssh
-
-# Set permission
-RUN chmod 0700 /root/.ssh
-
-# Disallow password authentication
-RUN echo -e "PasswordAuthentication no" >> /etc/ssh/sshd_config
-
-# Set sshd port
-RUN echo -e "Port 7022" >> /etc/ssh/sshd_config
-
-# Generate ssh keys
-RUN ssh-keygen -A
+# Configure OpenSSH
+RUN echo "PasswordAuthentication no" >> /etc/ssh/sshd_config && \
+    echo "Port 7012" >> /etc/ssh/sshd_config
 
 
 
@@ -91,29 +70,19 @@ RUN ssh-keygen -A
 FROM nginx:alpine AS main
 
 # Install runtime dependencies
-RUN apk add --no-cache ca-certificates tor bind-tools openssh bash
+RUN apk add --no-cache ca-certificates tor bind-tools openssh bash tzdata
 
-# Copy config from build stage
-COPY --from=ssh-builder /etc/ssh /etc/ssh
-COPY --from=ssh-builder /root/.ssh /root/.ssh
-
-# Copy the entire app directory from build stage
-COPY --from=xray-builder /app /app
-
-# Copy frps binary from build stage
-COPY --from=frp-builder /go/bin/frps /app
+# Copy app directory from build stages
+COPY --from=xray-builder /app/ /app/
+COPY --from=frp-builder /app/ /app/
+COPY --from=ssh-builder /etc/ssh/ /etc/ssh/
 
 # Set working directory
 WORKDIR /app
 
-# Copy frps configuration file
-COPY frps.toml config/
-
-# Copy start script file
-COPY start.sh .
-
-# Make start.sh executable
+# Copy and set up the start script
+COPY scripts/start.sh .
 RUN chmod +x start.sh
 
-# Define entrypoint
+# Define the entry point
 ENTRYPOINT ["/app/start.sh"]

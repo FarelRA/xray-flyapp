@@ -149,6 +149,18 @@ trap 'handle_signal SIGTERM' SIGTERM
 trap 'handle_signal SIGINT' SIGINT
 trap 'handle_signal SIGHUP' SIGHUP
 
+# Ensure required variables are set
+declare -a REQUIRED_VARS=("UUID" "sshPubKey" "pathPrefix" "SSEncrypt" "cloudflareIP")
+for var in "${REQUIRED_VARS[@]}"; do
+    if [[ -z "${!var:-}" ]]; then
+        log "ERROR: ${var} is not set"
+        exit 1
+    fi
+done
+
+# Create 'grpcPrefix' from 'pathPrefix'
+grpcPrefix=$(echo "${pathPrefix}" | sed 's|^/||' || echo "")
+
 # Initialize system variables
 readonly APP_NAME="${FLY_APP_NAME:-}"
 if [[ -z "${APP_NAME}" ]]; then
@@ -167,27 +179,16 @@ if [[ -z "${UDP_BIND_ADDR}" ]]; then
     log "WARNING: Could not find fly-global-services in /etc/hosts"
 fi
 
-# Ensure required variables are set
-declare -a REQUIRED_VARS=("UUID" "ParameterSSENCYPT" "sshPubKey" "cloudflareIP")
-for var in "${REQUIRED_VARS[@]}"; do
-    if [[ -z "${!var:-}" ]]; then
-        log "ERROR: ${var} is not set"
-        exit 1
-    fi
-done
-
-# Create necessary directories with proper permissions
-mkdir -p /root/.ssh
-chmod 700 /root/.ssh
-
 # Configure NGINX
+log "Configuring NGINX..."
 if [[ ! -f "/app/config/nginx.conf.var" ]]; then
     log "ERROR: NGINX template file not found"
     exit 1
 fi
 
 # shellcheck disable=SC2154
-sed -e "s|\$cloudflareIP|${cloudflareIP}|g" \
+sed -e "s|\$pathPrefix|${pathPrefix}|g" \
+    -e "s|\$cloudflareIP|${cloudflareIP}|g" \
     "/app/config/nginx.conf.var" > "/app/config/nginx.conf" || {
         log "ERROR: Failed to configure NGINX"
         exit 1
@@ -201,11 +202,13 @@ if [[ ! -f "/app/config/xray.json.var" ]]; then
 fi
 
 # shellcheck disable=SC2154
-sed -e "s|\$UUID|${UUID}|g" \
-    -e "s|\$ParameterSSENCYPT|${ParameterSSENCYPT}|g" \
-    -e "s|\$appName|${APP_NAME}|g" \
+sed -e "s|\$appName|${APP_NAME}|g" \
     -e "s|\$appIP|${APP_IP}|g" \
     -e "s|\$udpBindAddr|${UDP_BIND_ADDR}|g" \
+	-e "s|\$UUID|${UUID}|g" \
+	-e "s|\$pathPrefix|${pathPrefix}|g" \
+	-e "s|\$grpcPrefix|${grpcPrefix}|g" \
+    -e "s|\$SSEncrypt|${SSEncrypt}|g" \
     "/app/config/xray.json.var" > "/app/config/xray.json" || {
         log "ERROR: Failed to configure xray"
         exit 1
@@ -213,9 +216,17 @@ sed -e "s|\$UUID|${UUID}|g" \
 
 # Configure SSH with proper permissions
 log "Configuring SSH..."
+
+# Create the `.ssh` directory for the root user
+mkdir -p /root/.ssh
+chmod 0700 /root/.ssh
+
 # shellcheck disable=SC2154
 echo "${sshPubKey}" > /root/.ssh/authorized_keys
 chmod 600 "/root/.ssh/authorized_keys"
+
+# Generate the necessary SSH host keys
+ssh-keygen -A
 
 # Define daemon processes
 declare -A daemons=(

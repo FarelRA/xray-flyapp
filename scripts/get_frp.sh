@@ -6,7 +6,7 @@ REPO="frp"
 API_URL="https://api.github.com/repos/$OWNER/$REPO/releases/latest"
 
 # Function to extract the tarball URL from the JSON response
-Fetch_tarball_url() {
+fetch_tarball_url() {
    curl -s "$1" | grep '"tarball_url":' | sed -E 's/.*"([^"]+)".*/\1/'
 }
 

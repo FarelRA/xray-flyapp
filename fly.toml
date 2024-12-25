@@ -292,7 +292,6 @@ hard_limit = 1024
 soft_limit = 768
 
 # SSH service (TCP)
-# Forwarded to 8022 then open to port 22 by fly
 [[services]]
 protocol = 'tcp'
 internal_port = 1501
@@ -353,6 +352,19 @@ internal_port = 1504
 
 [[services.ports]]
 port = 19132
+
+[services.concurrency]
+type = 'connections'
+hard_limit = 1024
+soft_limit = 768
+
+# FTP service (TCP)
+[[services]]
+protocol = 'tcp'
+internal_port = 1505
+
+[[services.ports]]
+port = 21
 
 [services.concurrency]
 type = 'connections'

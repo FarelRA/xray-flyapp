@@ -1,0 +1,26 @@
+# SSH daemon configuration for Fly.io deployment
+Port 22
+Protocol 2
+
+# Authentication
+PubkeyAuthentication yes
+AuthorizedKeysFile /data/ssh/authorized_keys
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+UsePAM no
+
+# Security
+PermitRootLogin yes
+PermitEmptyPasswords no
+X11Forwarding no
+PrintMotd no
+PrintLastLog yes
+
+# Logging
+SyslogFacility AUTH
+LogLevel INFO
+
+# Host keys (stored in persistent volume)
+HostKey /data/ssh/ssh_host_rsa_key
+HostKey /data/ssh/ssh_host_ecdsa_key
+HostKey /data/ssh/ssh_host_ed25519_key

@@ -1,0 +1,110 @@
+#!/usr/bin/with-contenv bash
+
+# Exit on error
+set -e
+
+# --- Ownership and Permissions ---
+echo ">>> Setting ownership and permissions..."
+chown -R app:app /app /data /etc/services.d /etc/cont-init.d
+chmod +x /etc/services.d/*/run /etc/cont-init.d/*
+
+# --- Initial Configuration ---
+echo ">>> Initializing configurations..."
+CONFIG_DIR="/data/config"
+DEFAULT_CONFIG_DIR="/app/config"
+LOG_DIR="/data/logs"
+CERTS_DIR="/data/certs"
+
+# Create directories if they don't exist
+mkdir -p "${CONFIG_DIR}/traefik" "${LOG_DIR}" "${CERTS_DIR}"
+
+# Function to copy default config if not present
+copy_default_config() {
+  local_path=$1
+  if [ ! -f "${CONFIG_DIR}/${local_path}" ]; then
+    echo "Initializing default config for ${local_path}..."
+    cp "${DEFAULT_CONFIG_DIR}/${local_path}" "${CONFIG_DIR}/${local_path}"
+  fi
+}
+
+# Copy default configs
+copy_default_config "frps.toml"
+copy_default_config "xray.json"
+copy_default_config "traefik/traefik.yml"
+copy_default_config "traefik/dynamic.yml"
+
+# --- Generate Self-Signed Certificate for Fallback ---
+echo ">>> Generating self-signed certificate for unknown domains..."
+if [ ! -f "${CERTS_DIR}/selfsigned.crt" ] || [ ! -f "${CERTS_DIR}/selfsigned.key" ]; then
+  openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout "${CERTS_DIR}/selfsigned.key" \
+    -out "${CERTS_DIR}/selfsigned.crt" \
+    -subj "/C=US/ST=Cloud/L=Fly/O=Farel/OU=IT/CN=*.local" \
+    -extensions v3_req \
+    -config <(cat <<EOF
+[req]
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+prompt = no
+
+[req_distinguished_name]
+C=US
+ST=Cloud
+L=Fly
+O=Farel
+OU=IT
+CN=*.local
+
+[v3_req]
+keyUsage = keyEncipherment, dataEncipherment
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = *.local
+DNS.2 = localhost
+DNS.3 = *.unknown
+IP.1 = 127.0.0.1
+EOF
+)
+  echo "Self-signed certificate generated successfully."
+fi
+
+# --- Template Configurations with Environment Variables ---
+echo ">>> Templating configurations..."
+APP_NAME=${FLY_APP_NAME:-"farel"}
+FRPS_DASHBOARD_PORT=7500 # Internal port, Traefik will expose it
+
+# Use `|` as sed delimiter to avoid issues with slashes in paths
+sed -i "s|{{ .Envs.FRP_DASHBOARD_PWD }}|${FRP_DASHBOARD_PWD:-"admin"}|g" "${CONFIG_DIR}/frps.toml"
+sed -i "s|{{ .Envs.FRP_TOKEN }}|${FRP_TOKEN:-"your_frp_token"}|g" "${CONFIG_DIR}/frps.toml"
+sed -i "s|{{ .Envs.FRP_DASHBOARD_PORT }}|${FRPS_DASHBOARD_PORT}|g" "${CONFIG_DIR}/frps.toml"
+
+sed -i "s|\$UUID|${UUID:-"generate-a-uuid"}|g" "${CONFIG_DIR}/xray.json"
+sed -i "s|\$FLY_APP_NAME|${APP_NAME}|g" "${CONFIG_DIR}/traefik/dynamic.yml"
+
+# --- SSH Server Setup ---
+echo ">>> Configuring SSH server..."
+if [ -z "$sshPubKey" ]; then
+  echo "WARNING: sshPubKey environment variable not set. SSH access will be disabled."
+  # Disable the sshd service
+  touch /etc/services.d/sshd/down
+else
+  mkdir -p /data/ssh /root/.ssh
+  echo "$sshPubKey" > /data/ssh/authorized_keys
+  chmod 700 /root/.ssh
+  chmod 600 /data/ssh/authorized_keys
+  # Link authorized_keys for root user
+  ln -sf /data/ssh/authorized_keys /root/.ssh/authorized_keys
+  # Generate host keys if they don't exist in the persistent volume
+  if [ ! -f "/data/ssh/ssh_host_rsa_key" ]; then
+      ssh-keygen -A -f /data/ssh
+  fi
+fi
+
+# --- Set proper permissions ---
+chown -R app:app /data
+chmod 600 "${CERTS_DIR}/selfsigned.key"
+chmod 644 "${CERTS_DIR}/selfsigned.crt"
+
+echo ">>> Initial setup complete."

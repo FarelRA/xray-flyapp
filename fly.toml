@@ -1,372 +1,116 @@
-################################
-# App configuration
-# Name, Region, Env, and Machine
+# fly.toml file generated for your-app-name on 2023-10-27T14:48:47+07:00
 
-app = 'farel'
+app = 'farel' # Change this to your app name
 primary_region = 'sin'
-
-[env]
-sshPubKey = 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHZ2+s38OZO9N/nxhyz4K8K4bk29h8gSSZ5LQk3FKVdy farel@CachyOS'
-pathPrefix = '/proxy/flyio'
-cloudflareIP = '104.24.215.58'
-SSEncrypt = 'chacha20-ietf-poly1305'
-
-[[vm]]
-cpu_kind = "shared"
-cpus = 1
-memory_mb = 256
-
-
-################################
-# Build and App configuration
-# DO NOT CHANGE unless you know
-
 kill_signal = 'SIGTERM'
-kill_timeout = '2m0s'
+kill_timeout = '2m'
 
 [build]
-dockerfile = 'Dockerfile'
-build-target = 'main'
+  dockerfile = 'Dockerfile'
 
+[env]
+  # --- Critical Secrets (Set with `fly secrets set`) ---
+  # DASHBOARD_USER = "admin"
+  # DASHBOARD_PWD = "your_strong_password"
+  # FRP_TOKEN = "your_frp_token"
+  # UUID = "your_xray_uuid"
 
-################################
-# SSH configuration
-# Expose system ssh
+  # --- General Configuration ---
+  # Your SSH public key for admin access
+  sshPubKey = 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHZ2+s38OZO9N/nxhyz4K8K4bk29h8gSSZ5LQk3FKVdy farel@CachyOS'
 
-# SSH service (TCP)
+[mounts]
+  source = 'app_data'
+  destination = '/data'
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512 # Increased memory for all services
+
+############################################################
+# INCOMING SERVICES
+# All traffic is routed by fly.io's proxy to internal ports.
+############################################################
+
+# --- Traefik HTTP/S Entrypoint (for Xray, Dashboards) ---
 [[services]]
-protocol = 'tcp'
-internal_port = 7012
+  protocol = 'tcp'
+  internal_port = 80
+  [[services.ports]]
+    port = 80
+    handlers = ['http']
+    force_https = true
 
-[[services.ports]]
-port = 24
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-
-################################
-# NGINX service (Port 80 and 443)
-# Used by NGINX for Xray routing
-
-# NGINX TLS service
 [[services]]
-protocol = 'tcp'
-internal_port = 7004
+  protocol = 'tcp'
+  internal_port = 443
+  [[services.ports]]
+    port = 443
+    handlers = ['tls', 'http']
+  [services.ports.tls_options]
+    alpn = ['h2', 'http/1.1']
 
-[[services.ports]]
-port = 443
-handlers = ['tls']
-
-[services.ports.tls_options]
-alpn = ["h2", "http/1.1"]
-versions = ["TLSv1.2", "TLSv1.3"]
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-# NGINX non-TLS service
+# --- SSH Admin Access ---
 [[services]]
-protocol = 'tcp'
-internal_port = 7004
+  protocol = 'tcp'
+  internal_port = 22
+  [[services.ports]]
+    port = 22
 
-[[services.ports]]
-port = 80
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-
-################################
-# NGINX service (Port 2053 and 8880)
-# Used by NGINX for Cloudflare Proxy
-
-# Cloudflare TLS proxy
+# --- FRPS Main Control Plane ---
 [[services]]
-protocol = 'tcp'
-internal_port = 7005
+  protocol = 'tcp'
+  internal_port = 7000
+  [[services.ports]]
+    port = 7000
 
-[[services.ports]]
-port = 2053
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-# Cloudflare non-TLS proxy
+# --- FRPS KCP (UDP) ---
 [[services]]
-protocol = 'tcp'
-internal_port = 7006
+  protocol = 'udp'
+  internal_port = 7001
+  [[services.ports]]
+    port = 7001
 
-[[services.ports]]
-port = 8880
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-
-################################
-# Xray configuration
-# Expose non-routable proxies
-
-# HTTPS proxy
+# --- FRPS QUIC (UDP) ---
 [[services]]
-protocol = 'tcp'
-internal_port = 7007
+  protocol = 'udp'
+  internal_port = 7002
+  [[services.ports]]
+    port = 7002
 
-[[services.ports]]
-port = 8443
-handlers = ['tls']
+############################################################
+# FRPS PROXY PORTS
+# Ports opened for frpc clients to use for their tunnels.
+# Add or remove as needed.
+############################################################
 
-[services.ports.tls_options]
-alpn = ["h2", "http/1.1"]
-versions = ["TLSv1.2", "TLSv1.3"]
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-# HTTP proxy
 [[services]]
-protocol = 'tcp'
-internal_port = 7007
+  protocol = 'tcp'
+  internal_port = 2222 # SSH
+  [[services.ports]]
+    port = 2222
 
-[[services.ports]]
-port = 8080
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-# Socks proxy (TCP)
 [[services]]
-protocol = 'tcp'
-internal_port = 7008
+  protocol = 'tcp'
+  internal_port = 5900 # VNC
+  [[services.ports]]
+    port = 5900
 
-[[services.ports]]
-port = 1080
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-# Socks proxy (UDP)
 [[services]]
-protocol = 'udp'
-internal_port = 7008
+  protocol = 'udp'
+  internal_port = 5900 # VNC
+  [[services.ports]]
+    port = 5900
 
-[[services.ports]]
-port = 1080
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-# ShadowSocks proxy (TCP)
 [[services]]
-protocol = 'tcp'
-internal_port = 7009
+  protocol = 'tcp'
+  internal_port = 25565 # Minecraft Java
+  [[services.ports]]
+    port = 25565
 
-[[services.ports]]
-port = 8388
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-
-################################
-# frps configuration
-# Web pannel and services port
-
-# HTTPS web pannel
 [[services]]
-protocol = 'tcp'
-internal_port = 7003
-
-[[services.ports]]
-port = 5443
-handlers = ['tls', 'http']
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-# HTTP web pannel
-[[services]]
-protocol = 'tcp'
-internal_port = 7003
-
-[[services.ports]]
-port = 5000
-handlers = ['http']
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-# TCP connection service on 7000
-[[services]]
-protocol = 'tcp'
-internal_port = 7000
-
-[[services.ports]]
-port = 7000
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-# UDP (KCP) connection service on 7001
-[[services]]
-protocol = 'udp'
-internal_port = 7001
-
-[[services.ports]]
-port = 7001
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-# UDP (Quic) connection service on 7002
-[[services]]
-protocol = 'udp'
-internal_port = 7002
-
-[[services.ports]]
-port = 7002
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-
-################################
-# frps port forward configuration
-# port open by frps for reverse proxy
-
-# Experimental port uses (TCP)
-[[services]]
-protocol = 'tcp'
-internal_port = 1500
-
-[[services.ports]]
-port = 1500
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-# Experimental port uses (UDP)
-[[services]]
-protocol = 'udp'
-internal_port = 1500
-
-[[services.ports]]
-port = 1500
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-# SSH service (TCP)
-[[services]]
-protocol = 'tcp'
-internal_port = 1501
-
-[[services.ports]]
-port = 25
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-# VNC service
-# TCP version, use port 5900
-[[services]]
-protocol = 'tcp'
-internal_port = 1502
-
-[[services.ports]]
-port = 5900
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-# VNC service
-# UDP version, use port 5900
-[[services]]
-protocol = 'udp'
-internal_port = 1502
-
-[[services.ports]]
-port = 5900
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-# Minecraft Java (TCP)
-[[services]]
-protocol = 'tcp'
-internal_port = 1503
-
-[[services.ports]]
-port = 25565
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-# Minecraft Bedrock (UDP)
-[[services]]
-protocol = 'udp'
-internal_port = 1504
-
-[[services.ports]]
-port = 19132
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
-
-# FTP service (TCP)
-[[services]]
-protocol = 'tcp'
-internal_port = 1505
-
-[[services.ports]]
-port = 21
-
-[services.concurrency]
-type = 'connections'
-hard_limit = 1024
-soft_limit = 768
+  protocol = 'udp'
+  internal_port = 19132 # Minecraft Bedrock
+  [[services.ports]]
+    port = 19132

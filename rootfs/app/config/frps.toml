@@ -1,0 +1,25 @@
+# frps.toml - FRP Server Configuration
+
+bindAddr = "0.0.0.0"
+bindPort = 7000
+
+# KCP and QUIC binding for UDP performance
+kcpBindPort = 7001
+quicBindPort = 7002
+
+# Authentication
+auth.method = "token"
+auth.token = "{{ .Envs.FRP_TOKEN }}"
+
+# Dashboard configuration
+# It binds to an internal port; Traefik exposes it securely.
+webServer.addr = "127.0.0.1"
+webServer.port = {{ .Envs.FRP_DASHBOARD_PORT }}
+webServer.user = "admin"
+webServer.password = "{{ .Envs.FRP_DASHBOARD_PWD }}"
+
+# Log settings
+log.to = "/data/logs/frps.log"
+log.level = "info"
+log.maxDays = 3
+log.disablePrintColor = true

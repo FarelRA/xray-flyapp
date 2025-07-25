@@ -1,0 +1,76 @@
+# traefik.yml - Static Configuration
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+log:
+  level: INFO
+  filePath: "/data/logs/traefik.log"
+
+accessLog:
+  filePath: "/data/logs/traefik_access.log"
+  bufferingSize: 100
+
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: ":443"
+
+api:
+  dashboard: true
+  insecure: true # Dashboard is not exposed externally by default
+
+providers:
+  file:
+    directory: "/data/config/traefik"
+    watch: true
+
+# Certificate management
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: admin@farel.fly.dev # Change this to your email
+      storage: /data/traefik-acme.json
+      httpChallenge:
+        entryPoint: web
+      # Specific domains for Let's Encrypt certificates
+      domains:
+        - main: "farel.fly.dev"
+          sans:
+            - "*.farel.fly.dev"
+        - main: "farel.is-a.dev"
+          sans:
+            - "*.farel.is-a.dev"
+        - main: "fly.farel.is-a.dev"
+          sans:
+            - "*.fly.farel.is-a.dev"
+        - main: "farel.at.eu.org"
+          sans:
+            - "*.farel.at.eu.org"
+        - main: "fly.farel.at.eu.org"
+          sans:
+            - "*.fly.farel.at.eu.org"
+
+# TLS configuration
+tls:
+  options:
+    default:
+      minVersion: "VersionTLS12"
+      cipherSuites:
+        - "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
+        - "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
+        - "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
+    
+  # Self-signed certificate store for fallback
+  stores:
+    default:
+      defaultGeneratedCert:
+        resolver: selfsigned
+        domain:
+          main: "*.local"

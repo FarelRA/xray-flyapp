@@ -1,204 +1,171 @@
-# Xray and FRP on fly.io
+# All-in-One Tunneling & Proxy Server on Fly.io
 
-This project combines Xray and FRP, allowing you to run your own secure tunnels and proxies on fly.io, bypassing CGNAT limitations and accessing services behind firewalls.  Enjoy ngrok-like functionality with custom TCP/UDP ports, plus the versatility of Xray for various proxying needs, all within a single fly.io application.
+This project provides a robust, professionally architected, all-in-one solution for deploying Xray, FRP, and other services on Fly.io. It has been completely rewritten for enhanced stability, manageability, and features, centered around a powerful web-based Admin Dashboard.
 
-> [!NOTE]
-> On 2024, fly.io will now charge $2/mo for a dedicated IPv4 address, but everything under $5 bill monthly is waved, so if you have 2 or fewer dedicated IPv4, it is still free.
+Forget brittle shell scripts and manual configuration. This is your personal, self-managed Ngrok/Cloudflare Tunnel alternative, with the power of a full proxy suite, running on the edge.
 
-## Features
+ <!-- Replace with your diagram image -->
 
-* **Combined Xray and FRP:** Leverage both tools for flexible tunneling and proxying.
-* **Custom TCP/UDP Ports:**  Choose your desired ports, unlike ngrok's random port assignments for free users.
-* **Xray Functionality:**  Proxy traffic using various protocols (vless, vmess, trojan).
-* **Easy Deployment:** Deploy with flyctl or directly from GitHub Codespaces.
-* **Patched FRP for UDP:**  Modified FRP to bind to `fly-global-services` for reliable UDP support on fly.io.
-* **Suspend/Resume:** Easily control resource usage by suspending and resuming your fly.io app.
+## ✨ What's New in this Version
 
-## Architecture
+*   **Powerful Admin Dashboard:** A central UI to manage the entire application.
+    *   **Service Control:** Start, stop, and restart services (Xray, FRPS, etc.) with one click.
+    *   **Live Configuration Editor:** Edit `frps.toml`, `xray.json`, and `traefik` routing rules directly from your browser. Changes are persistent.
+    *   **Real-time Log Streaming:** View logs from any service live.
+    *   **Integrated Web Terminal:** Full shell access to your container within the dashboard.
+*   **Rock-Solid Process Management:** Replaced the `start.sh` script with **`s6-overlay`**, the industry standard for process supervision in containers.
+*   **Intelligent Edge Routing:** Replaced `Nginx` with **`Traefik`**, a modern reverse proxy that dynamically routes traffic to your services.
+*   **Persistent State:** Configurations and logs are stored on a persistent Fly.io volume, surviving restarts and redeploys.
+*   **Simplified & Secure:** Streamlined Dockerfile, cleaner configuration, and a modular design that's easier to understand and extend.
 
-### Normal frp
+## 🚀 Deployment
 
-```mermaid
-flowchart LR
-    subgraph ServerNoPublicIP["Server without Public IP"]
-        Services["TCP, UDP, or HTTP services"]
-        frpc["frpc"]
-    end
-    subgraph flyapp["fly.io App Server"]
-        frps["frps"]
-    end
-    Internet["The Internet"]
+**Prerequisites:**
+*   A [Fly.io](https://fly.io/) account.
+*   [flyctl](https://fly.io/docs/hands-on/install-flyctl/) installed locally.
 
-    Services <---> frpc
-    frpc <--> |Control Plane| frps
-    frps <--> |Data Plane| Internet
+### Step 1: Launch the App
+
+1.  **Clone the Repository:**
+    ```bash
+    git clone <your-repo-url>
+    cd <repo-folder>
+    ```
+2.  **Launch on Fly.io:**
+    This command will create the app, create a persistent volume for your data, but **will not deploy it yet**.
+    ```bash
+    fly launch --copy-config --name farel --no-deploy
+    ```
+    *   The app name is set to "farel".
+    *   Select a primary region.
+    *   When prompted to "Create a volume for this app", say **Yes**. This is crucial for persistent configs.
+
+### Step 2: Set Secrets
+
+Set the essential secrets for authentication. Use strong, unique values.
+
+```bash
+fly secrets set \
+  -a farel \
+  DASHBOARD_USER="admin" \
+  DASHBOARD_PWD="CHOOSE_A_VERY_STRONG_PASSWORD" \
+  FRP_TOKEN="CHOOSE_A_SECURE_FRP_TOKEN" \
+  UUID="GENERATE_A_UUID_V4"
+```
+> You can generate a UUID from a site like [uuidgenerator.net](https://www.uuidgenerator.net/).
+
+### Step 3: Deploy
+
+Now, deploy your application.
+
+```bash
+fly deploy -a farel
 ```
 
-### Normal Xray
+After deployment, Fly.io will provide you with your app's hostname, like `farel.fly.dev`.
 
-```mermaid
-flowchart LR
-    subgraph ServerBehindFirewall["User behind Firewall"]
-        Requests["User requests"]
-        XrayClient["Xray client"]
-    end
-    subgraph flyapp["fly.io App Server"]
-        XrayServer["Xray server"]
-    end
-    Internet["The Internet"]
+### Step 4: Custom Domain Setup (Optional)
 
-    Requests <---> XrayClient
-    XrayClient <--> |Masked & Encryped| XrayServer
-    XrayServer <--> Internet
-```
+This application supports **wildcard domain matching** with automatic TLS certificate management:
 
-### Combine Xray & frp
+#### **Automatic TLS Certificates**
+The following domains will automatically get Let's Encrypt certificates:
+- `*.farel.fly.dev` (Fly.io default)
+- `*.farel.is-a.dev` 
+- `*.fly.farel.is-a.dev`
+- `*.farel.at.eu.org`
+- `*.fly.farel.at.eu.org`
 
-```mermaid
-flowchart LR
-    subgraph ServerBehindFirewall["Private Network/Behind Firewall"]
-        Requests["User requests"]
-        XrayClient["Xray client"]
-        Services["TCP, UDP, or HTTP services"]
-        frpc["frpc"]
-    end
-    subgraph flyapp["fly.io App Server"]
-        XrayServer["Xray server"]
-        frps["frps"]
-    end
-    Internet["The Internet"]
+#### **Self-Signed Fallback**
+Any other domain will be served with a self-signed certificate, allowing you to add new domains without configuration changes.
 
-    Requests <---> XrayClient
-    Services <--> frpc
-    frpc <--> |Control Plane| XrayClient
-    XrayClient <--> |Masked & Encryped| XrayServer
-    XrayServer <--> Internet
-    XrayServer <--> |Control Plane| frps
-    frps <--> |Data Plane| Internet
-```
+#### **Setup Steps:**
 
-## Deployment
+1. **Add certificates for your custom domains:**
+   ```bash
+   fly certs add -a farel farel.is-a.dev
+   fly certs add -a farel "*.farel.is-a.dev"
+   fly certs add -a farel fly.farel.is-a.dev
+   fly certs add -a farel "*.fly.farel.is-a.dev"
+   fly certs add -a farel farel.at.eu.org
+   fly certs add -a farel "*.farel.at.eu.org"
+   fly certs add -a farel fly.farel.at.eu.org
+   fly certs add -a farel "*.fly.farel.at.eu.org"
+   ```
 
-### GitHub Codespaces
+2. **Configure DNS records** for your domains:
+   - **A Record**: Point to your Fly.io app's IPv4 address
+   - **AAAA Record**: Point to your Fly.io app's IPv6 address
+   - Get these IPs with: `fly ips list -a farel`
 
-1. Fork this repository.
-2. Open the forked repository in GitHub Codespaces.
-3. Update the `FRP_VERSION` in the `Dockerfile` to the latest FRP release if necessary.
-4. Authenticate with flyctl: `fly auth login` or set `FLY_API_TOKEN` in Codespaces secrets.
-5. Create a fly.io app: `fly launch --copy-config --name <your-app-name> --no-deploy`.  Answer the prompts to configure the region.
-6. Set secrets: `fly secrets set -a <your-app-name> FRP_TOKEN=<your-token> FRP_DASHBOARD_PWD=<your-password> UUID=<your-uuid>`
-7. Deploy: `fly deploy -a <your-app-name> --ha=false` and allocate a dedicated IPv4 address when prompted.
-8. Configure your client (see below) and connect!
+3. **Verify certificates:**
+   ```bash
+   fly certs show -a farel farel.is-a.dev
+   ```
 
-### Local Deployment (flyctl)
+#### **Wildcard Routing**
+The Traefik configuration uses wildcard patterns:
+- `admin.*` → Admin Dashboard
+- `frp.*` → FRP Dashboard  
+- `api.*` → API endpoints
+- `*` + `/vless` → Xray VLESS endpoint
+- `*` (fallback) → Main dashboard
 
-1. Install [flyctl](https://github.com/superfly/flyctl).
-2. Clone this repository.
-3. Update the `FRP_VERSION` in the `Dockerfile` to the latest FRP release if necessary.
-4. Authenticate with flyctl: `fly auth login`.
-5. Follow steps 5-8 from the GitHub Codespaces instructions.
+This means you can use **any subdomain** with your configured domains, such as:
+- `admin.example.com` (with self-signed cert)
+- `frp.mydomain.net` (with self-signed cert)
+- `admin.farel.is-a.dev` (with Let's Encrypt cert)
 
-## Xray Client Configuration
+## 🛠️ Using the Dashboard
 
-* **Address:** `<your-app-name>.fly.dev`
-* **Port:** 443 or 80
-* **UUID:** `<your-uuid>`
-* **Protocol:** vless, vmess, or trojan
-* **Path:** `/vless`, `/vmess`, or `/trojan` (matching the chosen protocol)
-* **Transport:** ws
-* **ws-host:** `<your-app-name>.fly.dev`
-* **TLS:** Enabled (for port 443)
-* **SNI:** `<your-app-name>.fly.dev`
-* **Allow Insecure:** true
-* **Flow:** `<empty>`
-* **Encryption:** none
-* **Security:** auto
+1.  **Access the Dashboard:** Navigate to one of these URLs:
+    - `https://admin.farel.fly.dev` (Fly.io default)
+    - `https://admin.farel.is-a.dev` (Custom domain)
+    - `https://admin.fly.farel.is-a.dev` (Custom domain)
+    - `https://admin.farel.at.eu.org` (Custom domain)
+    - `https://admin.fly.farel.at.eu.org` (Custom domain)
+2.  **Login:** Use the `DASHBOARD_USER` and `DASHBOARD_PWD` you set in the secrets.
+3.  **Explore:**
+    *   View service status and restart them as needed.
+    *   Go to the "Configuration Editor" to inspect or modify `frps.toml` or `xray.json`. After saving, you may need to restart the relevant service for changes to take effect.
+    *   Stream logs or open the terminal for advanced debugging.
 
-## FRP Client Configuration (frpc.toml)
+##  client Configurations
 
-See the [Example frpc.toml](#example-frpctoml) section below.
+### FRP Client (frpc.toml)
 
-## Updating Server Configuration
-
-Modify `frps.toml` and/or `fly.toml` and redeploy: `fly deploy -a <your-app-name>`.
-
-## Managing Your App
-
-* **Suspend:** `fly scale count 0 -a <your-app-name>`
-* **Resume:** `fly scale count 1 -a <your-app-name>`
-
-## Example frpc.toml
+Point your `frpc` to your new server.
 
 ```toml
-serverAddr = "<your-app-name>.fly.dev"
-auth.token = "<your-token>"
+serverAddr = "farel.fly.dev"
+serverPort = 7000 # For TCP
+# serverPort = 7001 # For KCP (UDP)
+# serverPort = 7002 # For QUIC (UDP)
 
-# For KCP: (Default)
-serverPort = 7001
-transport.protocol = "kcp"
-
-# For TCP:
-# serverPort = 7000
-# transport.protocol = "tcp"
-
-# For QUIC:
-# serverPort = 7002
-# transport.protocol = "quic"
+auth.token = "YOUR_FRP_TOKEN_SECRET" # Must match the secret
 
 [[proxies]]
-name = "SSH"
+name = "ssh-tunnel"
 type = "tcp"
 localIP = "127.0.0.1"
 localPort = 22
-remotePort = 8022
-
-[[proxies]]
-name = "Minecraft Java"
-type = "tcp"
-localIP = "127.0.0.1"
-localPort = 25565
-remotePort = 25565
-
-[[proxies]]
-name = "Minecraft Bedrock"
-type = "udp"
-localIP = "127.0.0.1"
-localPort = 19132
-remotePort = 19132
-
-[[proxies]]
-name = "Experimental Test (TCP)"
-type = "tcp"
-localIP = "127.0.0.1"
-localPort = 3072
-remotePort = 3072
-
-[[proxies]]
-name = "Experimental Test (UDP)"
-type = "udp"
-localIP = "127.0.0.1"
-localPort = 3072
-remotePort = 3072
+remotePort = 2222 # Must match an open port in fly.toml
 ```
 
-## HTTP Tunneling
+### Xray Client (VLESS over WebSocket)
 
-For HTTP tunneling, Cloudflare Tunnel is recommended.  See the [wiki](https://github.com/AnimMouse/frp-flyapp/wiki/HTTP-Tunneling) for HTTP tunneling with FRP on this setup.
+*   **Address:** `farel.fly.dev` or custom domains (`farel.is-a.dev`, `fly.farel.is-a.dev`, `farel.at.eu.org`, `fly.farel.at.eu.org`)
+*   **Port:** `443`
+*   **UUID / User ID:** Your `UUID` secret
+*   **Protocol / Security:** `none`
+*   **Network / Transport:** `ws` (WebSocket)
+*   **Path:** `/vless`
+*   **TLS/Security:** `tls`
+*   **SNI (Server Name Indication):** Use the same domain as Address
 
-## IPv6 Support
+## Credits & Acknowledgements
 
-IPv6 is partially supported. See the original repository for details and limitations regarding `fly-global-services` and IPv6.  Allocate IPv6 with: `fly ips allocate-v6 -a <your-app-name>`.
-
-## Credits
-
-* [AnimMouse/frp-flyapp](https://github.com/AnimMouse/frp-flyapp/) (Original FRP on fly.io project)
-* [thawhakyi/HerokuXray](https://github.com/thawhakyi/HerokuXray/) (Run Xray in Heroku)
-* [FarelRA/xray-flyapp](https://github.com/FarelRA/xray-flyapp) (Xray and FRP combined)
-
-## Further Information
-
-* [awesome-tunneling](https://github.com/anderspitman/awesome-tunneling)
-
-## CGNAT and Why This Project Matters
-
-This project helps circumvent the limitations imposed by Carrier-grade NAT (CGNAT), allowing you to expose your services to the internet even when behind a CGNAT.  Read more about the discussion surrounding NAT: [Is NAT a conspiracy?](https://chatgptwith.me/posts/is-nat-a-conspiracy/)
+This project stands on the shoulders of giants and is a significant evolution of concepts from:
+*   [AnimMouse/frp-flyapp](https://github.com/AnimMouse/frp-flyapp/)
+*   [FarelRA/xray-flyapp](https://github.com/FarelRA/xray-flyapp)
+*   The creators of Traefik, s6-overlay, FRP, and Xray.

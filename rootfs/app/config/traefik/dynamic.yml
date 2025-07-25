@@ -1,0 +1,155 @@
+# traefik/dynamic.yml - Dynamic Routing Configuration
+# This file is watched by Traefik for live changes.
+# The Admin Dashboard can edit this file to change routing.
+
+http:
+  routers:
+    # --- Admin Dashboard Router (Wildcard) ---
+    # Catches admin.* from any domain
+    dashboard-router:
+      rule: "HostRegexp(`admin.{domain:.+}`)"
+      service: "dashboard-svc"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: "admin.farel.fly.dev"
+          - main: "admin.farel.is-a.dev"
+          - main: "admin.fly.farel.is-a.dev"
+          - main: "admin.farel.at.eu.org"
+          - main: "admin.fly.farel.at.eu.org"
+      priority: 100
+
+    # --- FRPS Dashboard Router (Wildcard) ---
+    # Catches frp.* from any domain
+    frps-router:
+      rule: "HostRegexp(`frp.{domain:.+}`)"
+      service: "frps-svc"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: "frp.farel.fly.dev"
+          - main: "frp.farel.is-a.dev"
+          - main: "frp.fly.farel.is-a.dev"
+          - main: "frp.farel.at.eu.org"
+          - main: "frp.fly.farel.at.eu.org"
+      priority: 100
+
+    # --- Xray VLESS Websocket Router (Wildcard) ---
+    # Catches any domain with /vless path
+    xray-router:
+      rule: "HostRegexp(`{domain:.+}`) && Path(`/vless`)"
+      service: "xray-svc"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: "farel.fly.dev"
+          - main: "farel.is-a.dev"
+          - main: "fly.farel.is-a.dev"
+          - main: "farel.at.eu.org"
+          - main: "fly.farel.at.eu.org"
+      priority: 200  # Higher priority than main router
+
+    # --- API/Health Router (Wildcard) ---
+    # Catches api.* from any domain for health checks
+    api-router:
+      rule: "HostRegexp(`api.{domain:.+}`) || HostRegexp(`{domain:.+}`) && Path(`/api`, `/health`)"
+      service: "dashboard-svc"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: "api.farel.fly.dev"
+          - main: "api.farel.is-a.dev"
+          - main: "api.fly.farel.is-a.dev"
+          - main: "api.farel.at.eu.org"
+          - main: "api.fly.farel.at.eu.org"
+      priority: 150
+
+    # --- Main Website Router (Wildcard Fallback) ---
+    # Catches any domain not matched by specific routers
+    main-router:
+      rule: "HostRegexp(`{domain:.+}`)"
+      service: "dashboard-svc"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: "farel.fly.dev"
+          - main: "farel.is-a.dev"
+          - main: "fly.farel.is-a.dev"
+          - main: "farel.at.eu.org"
+          - main: "fly.farel.at.eu.org"
+      priority: 1  # Lowest priority - catches everything else
+
+    # --- Wildcard Fallback Router (Self-signed) ---
+    # For any domain not in the TLS list - serves self-signed cert
+    wildcard-fallback-router:
+      rule: "HostRegexp(`{domain:.+}`)"
+      service: "dashboard-svc"
+      entryPoints:
+        - websecure
+      tls: {} # Uses default self-signed cert
+      priority: 0  # Absolute lowest priority
+
+  services:
+    # --- Admin Dashboard Service ---
+    dashboard-svc:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:8080"
+        healthCheck:
+          path: "/health"
+          interval: "30s"
+          timeout: "5s"
+
+    # --- FRPS Dashboard Service ---
+    frps-svc:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:7500"
+        healthCheck:
+          path: "/"
+          interval: "30s"
+          timeout: "5s"
+
+    # --- Xray Service ---
+    xray-svc:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:10001"
+
+# TLS configuration for specific certificates
+tls:
+  certificates:
+    # Self-signed certificate for unknown domains
+    - certFile: /data/certs/selfsigned.crt
+      keyFile: /data/certs/selfsigned.key
+      stores:
+        - default
+
+# Middleware for security headers
+http:
+  middlewares:
+    security-headers:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+        customResponseHeaders:
+          X-Frame-Options: "SAMEORIGIN"
+          X-Content-Type-Options: "nosniff"
+          X-XSS-Protection: "1; mode=block"
+          Strict-Transport-Security: "max-age=31536000; includeSubDomains"
+        
+    # Rate limiting middleware
+    rate-limit:
+      rateLimit:
+        burst: 100
+        average: 50

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fly App Dashboard</title>
+    <link rel="stylesheet" href="/static/css/pico.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css" />
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <main class="container">
+        <header>
+            <h1>Fly App Dashboard</h1>
+            <p>Manage your application services, configurations, and logs.</p>
+        </header>
+
+        <!-- Services -->
+        <article>
+            <header>
+                <h2>Services Status</h2>
+            </header>
+            <div id="services-grid" class="grid"></div>
+            <footer>
+                <button onclick="fetchServices()">Refresh Status</button>
+            </footer>
+        </article>
+        
+        <!-- Config Editor -->
+        <article>
+            <header>
+                <h2>Configuration Editor</h2>
+            </header>
+            <div class="grid">
+                <select id="config-selector" onchange="loadSelectedConfig()"></select>
+            </div>
+            <textarea id="config-editor" rows="20"></textarea>
+            <footer>
+                <button class="contrast" onclick="saveCurrentConfig()">Save Config</button>
+                <small id="config-status"></small>
+            </footer>
+        </article>
+
+        <!-- Log Viewer -->
+        <article>
+            <header>
+                <h2>Log Viewer</h2>
+            </header>
+            <div class="grid">
+                <select id="log-selector" onchange="streamLogs()"></select>
+            </div>
+            <pre id="log-output"><code>Select a service to view logs...</code></pre>
+        </article>
+        
+        <!-- Web Terminal -->
+        <article>
+            <header>
+                <h2>Web Terminal</h2>
+            </header>
+            <div id="terminal"></div>
+        </article>
+
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

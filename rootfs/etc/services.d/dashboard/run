@@ -1,0 +1,5 @@
+#!/usr/bin/with-contenv bash
+set -e
+# This service runs as the 'app' user for better security
+exec s6-setuidgid app \
+    dashboard -config-dir /data/config -log-dir /data/logs

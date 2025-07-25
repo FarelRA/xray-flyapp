@@ -1,0 +1,72 @@
+:root {
+  --font-family: -apple-system, system-ui, sans-serif;
+  --line-height: 1.5;
+}
+
+body {
+    font-family: var(--font-family);
+}
+
+.service-card {
+    border: 1px solid var(--pico-muted-border-color);
+    padding: var(--pico-block-spacing-vertical) var(--pico-block-spacing-horizontal);
+    border-radius: var(--pico-border-radius);
+}
+
+.service-card h3 {
+    margin-bottom: 0.5rem;
+}
+
+.service-card .actions {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.service-card .actions button {
+    flex-grow: 1;
+    margin: 0;
+}
+
+.status-up {
+    color: var(--pico-color-green-500);
+    font-weight: bold;
+}
+
+.status-down {
+    color: var(--pico-color-red-500);
+    font-weight: bold;
+}
+
+#config-editor, #log-output {
+    width: 100%;
+    font-family: monospace;
+    font-size: 0.9em;
+    white-space: pre-wrap;
+    background-color: var(--pico-form-element-background-color);
+}
+
+#log-output {
+    height: 400px;
+    overflow-y: scroll;
+    padding: 1rem;
+    border: 1px solid var(--pico-form-element-border-color);
+    border-radius: var(--pico-border-radius);
+}
+#log-output code {
+    display: block;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+#terminal {
+    height: 500px;
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    background-color: #202b33;
+    border-radius: var(--pico-border-radius);
+}
+
+#config-status.success { color: var(--pico-color-green-500); }
+#config-status.error { color: var(--pico-color-red-500); }

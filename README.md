@@ -1,3 +1,5 @@
+> **Status:** Archived — no longer maintained, kept for reference.
+
 # Xray and FRP on fly.io
 
 This project combines Xray and FRP, allowing you to run your own secure tunnels and proxies on fly.io, bypassing CGNAT limitations and accessing services behind firewalls.  Enjoy ngrok-like functionality with custom TCP/UDP ports, plus the versatility of Xray for various proxying needs, all within a single fly.io application.
